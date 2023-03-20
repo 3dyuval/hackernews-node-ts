@@ -5,7 +5,9 @@ const typeDefinitions = /* GraphQL */ `
 		info: String!
 		feed: [Link!]!
 	}
-
+	type Mutation {
+		postLink(url: String!, description: String!): Link!
+	}
 	type Link {
 		id: ID!
 		description: String!
@@ -21,7 +23,7 @@ type Link = {
 
 const links: Link[] = [
 	{
-		id: '1',
+		id: 'link-1',
 		url: 'www',
 		description: 'link1',
 	},
@@ -31,6 +33,17 @@ const resolvers = {
 	Query: {
 		info: () => 'This is an api from Hackernews',
 		feed: () => links,
+	},
+	Mutation: {
+		postLink: (parent: unknown, args: { description: string; url: string }) => {
+			const link: Link = {
+				id: 'link-' + (links.length + 1),
+				url: args.url,
+				description: args.description,
+			}
+			links.push(link)
+			return link
+		},
 	},
 	Link: {
 		id: (parent: Link) => parent.id,
