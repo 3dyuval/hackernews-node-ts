@@ -1,4 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { PrismaClient } from '@prisma/client'
 
 const typeDefinitions = /* GraphQL */ `
 	type Query {
@@ -29,21 +30,18 @@ const links: Link[] = [
 	},
 ]
 
+const prisma = new PrismaClient()
+
 const resolvers = {
 	Query: {
 		info: () => 'This is an api from Hackernews',
-		feed: () => links,
+		feed: async () => await prisma.link.findMany(),
 	},
 	Mutation: {
-		postLink: (parent: unknown, args: { description: string; url: string }) => {
-			const link: Link = {
-				id: 'link-' + (links.length + 1),
-				url: args.url,
-				description: args.description,
-			}
-			links.push(link)
-			return link
-		},
+		postLink: async (
+			parent: unknown,
+			args: { description: string; url: string }
+		) => await prisma.link.create({ data: args }),
 	},
 }
 
