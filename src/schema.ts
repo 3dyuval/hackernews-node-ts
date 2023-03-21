@@ -25,21 +25,32 @@ const typeDefinitions = /* GraphQL */ `
 const resolvers = {
 	Query: {
 		info: () => 'This is an api from Hackernews',
-		feed: async (parent: unknown, args: {}, context: GraphQLContext) =>
-			await context.prisma.link.findMany(),
+		feed: async (parent: unknown, args: {}, context: GraphQLContext) => {
+			return await context.prisma.link.findMany()
+		},
+		comment: async (
+			parent: unknown,
+			args: { id: string },
+			context: GraphQLContext
+		) => {
+			return await context.prisma.comment.findUnique({
+				where: { id: parseInt(args.id) },
+			})
+		},
 	},
 	Mutation: {
 		postLink: async (
 			parent: unknown,
 			args: { description: string; url: string },
 			context: GraphQLContext
-		) =>
-			await context.prisma.link.create({
+		) => {
+			return await context.prisma.link.create({
 				data: {
 					description: args.description,
 					url: args.url,
 				},
-			}),
+			})
+		},
 		postCommentOnLink: async (
 			parent: unknown,
 			args: { linkId: string; body: string },
