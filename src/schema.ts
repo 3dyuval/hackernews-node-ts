@@ -1,4 +1,5 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { Link } from '@prisma/client'
 import type { GraphQLContext } from './context'
 
 const typeDefinitions = /* GraphQL */ `
@@ -6,6 +7,7 @@ const typeDefinitions = /* GraphQL */ `
 		info: String!
 		feed: [Link!]!
 		comment(id: ID!): Comment
+		link(id: ID!): Link
 	}
 	type Mutation {
 		postLink(url: String!, description: String!): Link!
@@ -15,10 +17,12 @@ const typeDefinitions = /* GraphQL */ `
 		id: ID!
 		description: String!
 		url: String!
+		comments: [Comment]
 	}
 	type Comment {
 		id: ID!
 		body: String!
+		link: Link
 	}
 `
 
@@ -34,6 +38,15 @@ const resolvers = {
 			context: GraphQLContext
 		) => {
 			return await context.prisma.comment.findUnique({
+				where: { id: parseInt(args.id) },
+			})
+		},
+		link: async (
+			parent: unknown,
+			args: { id: string },
+			context: GraphQLContext
+		) => {
+			return context.prisma.link.findUnique({
 				where: { id: parseInt(args.id) },
 			})
 		},
@@ -61,6 +74,13 @@ const resolvers = {
 					linkId: parseInt(args.linkId),
 					body: args.body,
 				},
+			})
+		},
+	},
+	Link: {
+		comments: async (parent: Link, args: {}, context: GraphQLContext) => {
+			return context.prisma.comment.findMany({
+				where: { linkId: parent.id },
 			})
 		},
 	},
