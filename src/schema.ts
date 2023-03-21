@@ -16,12 +16,6 @@ const typeDefinitions = /* GraphQL */ `
 	}
 `
 
-type Link = {
-	id: string
-	url: string
-	description: string
-}
-
 const resolvers = {
 	Query: {
 		info: () => 'This is an api from Hackernews',
