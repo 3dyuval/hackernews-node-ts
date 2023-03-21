@@ -7,9 +7,17 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model link {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
+model Link {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
   description String
   url         String
+  linkComment Comment[]
+}
+
+model Comment {
+  id     Int    @id @default(autoincrement())
+  body   String
+  link   Link?  @relation(fields: [linkId], references: [id])
+  linkId Int?
 }
