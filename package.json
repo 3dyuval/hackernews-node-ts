@@ -1,7 +1,6 @@
 {
 	"name": "hackernews-node-ts",
 	"version": "1.0.0",
-	"type": "module",
 	"private": "false",
 	"description": "Hcakernews API with Yoga, Prisma and Typescript",
 	"main": "src/main.ts",
