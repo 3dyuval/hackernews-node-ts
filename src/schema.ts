@@ -1,7 +1,10 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { Link } from '@prisma/client'
+<<<<<<< HEAD
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
 import { GraphQLError } from 'graphql'
+=======
+>>>>>>> a44e54d8557bc9bbc2f98468dcc53c4b3e390457
 import type { GraphQLContext } from './context'
 
 const typeDefinitions = /* GraphQL */ `
@@ -66,6 +69,7 @@ const resolvers = {
 				},
 			})
 		},
+<<<<<<< HEAD
 		postCommentOnLink(
 			parent: unknown,
 			args: { linkId: string; body: string },
@@ -96,6 +100,20 @@ const resolvers = {
 		  }
 		}
 	  }
+=======
+		postCommentOnLink: async (
+			parent: unknown,
+			args: { linkId: string; body: string },
+			context: GraphQLContext
+		) => {
+			return await context.prisma.comment.create({
+				data: {
+					linkId: parseInt(args.linkId),
+					body: args.body,
+				},
+			})
+		},
+>>>>>>> a44e54d8557bc9bbc2f98468dcc53c4b3e390457
 	},
 	Link: {
 		comments: async (parent: Link, args: {}, context: GraphQLContext) => {
