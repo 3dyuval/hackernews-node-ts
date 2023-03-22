@@ -1,5 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { Link } from '@prisma/client'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { GraphQLError } from 'graphql'
 import type { GraphQLContext } from './context'
 
 const typeDefinitions = /* GraphQL */ `
@@ -64,18 +66,36 @@ const resolvers = {
 				},
 			})
 		},
-		postCommentOnLink: async (
+		postCommentOnLink(
 			parent: unknown,
 			args: { linkId: string; body: string },
 			context: GraphQLContext
-		) => {
-			return await context.prisma.comment.create({
+		  ) {
+			const comment = await context.prisma.comment
+			  .create({
 				data: {
-					linkId: parseInt(args.linkId),
-					body: args.body,
-				},
-			})
-		},
+				  body: args.body,
+				  linkId: parseInt(args.linkId)
+				}
+			  })
+			  .catch((e: unknown) => {
+				if (
+				  e instanceof Prisma.PrismaClientKnownRequestError &&
+				  e.code === 'P2003'
+				) {
+				  return Promise.reject(
+					new GraphQLError(
+					  `Cannot post comment on non-existing link with id '${args.linkId}'.`
+					)
+				  )
+				}
+				return Promise.reject(e)
+			  })
+	   
+			return comment
+		  }
+		}
+	  }
 	},
 	Link: {
 		comments: async (parent: Link, args: {}, context: GraphQLContext) => {
