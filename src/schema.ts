@@ -1,10 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import { Link } from '@prisma/client'
-<<<<<<< HEAD
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime'
+import { Prisma } from '@prisma/client'
 import { GraphQLError } from 'graphql'
-=======
->>>>>>> a44e54d8557bc9bbc2f98468dcc53c4b3e390457
 import type { GraphQLContext } from './context'
 
 const typeDefinitions = /* GraphQL */ `
@@ -57,11 +54,11 @@ const resolvers = {
 		},
 	},
 	Mutation: {
-		postLink: async (
+		async postLink (
 			parent: unknown,
 			args: { description: string; url: string },
 			context: GraphQLContext
-		) => {
+		) {
 			return await context.prisma.link.create({
 				data: {
 					description: args.description,
@@ -69,8 +66,7 @@ const resolvers = {
 				},
 			})
 		},
-<<<<<<< HEAD
-		postCommentOnLink(
+		async postCommentOnLink(
 			parent: unknown,
 			args: { linkId: string; body: string },
 			context: GraphQLContext
@@ -95,28 +91,11 @@ const resolvers = {
 				}
 				return Promise.reject(e)
 			  })
-	   
 			return comment
 		  }
-		}
-	  }
-=======
-		postCommentOnLink: async (
-			parent: unknown,
-			args: { linkId: string; body: string },
-			context: GraphQLContext
-		) => {
-			return await context.prisma.comment.create({
-				data: {
-					linkId: parseInt(args.linkId),
-					body: args.body,
-				},
-			})
-		},
->>>>>>> a44e54d8557bc9bbc2f98468dcc53c4b3e390457
-	},
+	  },
 	Link: {
-		comments: async (parent: Link, args: {}, context: GraphQLContext) => {
+		 async comments (parent: Link, args: {}, context: GraphQLContext) {
 			return context.prisma.comment.findMany({
 				where: { linkId: parent.id },
 			})
