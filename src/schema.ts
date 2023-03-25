@@ -1,47 +1,105 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { PrismaClient } from '@prisma/client'
+import { Link } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+import { GraphQLError } from 'graphql'
+import type { GraphQLContext } from './context'
 
 const typeDefinitions = /* GraphQL */ `
 	type Query {
 		info: String!
 		feed: [Link!]!
+		comment(id: ID!): Comment
+		link(id: ID!): Link
 	}
 	type Mutation {
 		postLink(url: String!, description: String!): Link!
+		postCommentOnLink(linkId: ID!, body: String!): Comment!
 	}
 	type Link {
 		id: ID!
 		description: String!
 		url: String!
+		comments: [Comment]
+	}
+	type Comment {
+		id: ID!
+		body: String!
+		link: Link
 	}
 `
-
-type Link = {
-	id: string
-	url: string
-	description: string
-}
-
-const links: Link[] = [
-	{
-		id: 'link-1',
-		url: 'www',
-		description: 'link1',
-	},
-]
-
-const prisma = new PrismaClient()
 
 const resolvers = {
 	Query: {
 		info: () => 'This is an api from Hackernews',
-		feed: async () => await prisma.link.findMany(),
+		feed: async (parent: unknown, args: {}, context: GraphQLContext) => {
+			return await context.prisma.link.findMany()
+		},
+		comment: async (
+			parent: unknown,
+			args: { id: string },
+			context: GraphQLContext
+		) => {
+			return await context.prisma.comment.findUnique({
+				where: { id: parseInt(args.id) },
+			})
+		},
+		link: async (
+			parent: unknown,
+			args: { id: string },
+			context: GraphQLContext
+		) => {
+			return context.prisma.link.findUnique({
+				where: { id: parseInt(args.id) },
+			})
+		},
 	},
 	Mutation: {
-		postLink: async (
+		async postLink (
 			parent: unknown,
-			args: { description: string; url: string }
-		) => await prisma.link.create({ data: args }),
+			args: { description: string; url: string },
+			context: GraphQLContext
+		) {
+			return await context.prisma.link.create({
+				data: {
+					description: args.description,
+					url: args.url,
+				},
+			})
+		},
+		async postCommentOnLink(
+			parent: unknown,
+			args: { linkId: string; body: string },
+			context: GraphQLContext
+		  ) {
+			const comment = await context.prisma.comment
+			  .create({
+				data: {
+				  body: args.body,
+				  linkId: parseInt(args.linkId)
+				}
+			  })
+			  .catch((e: unknown) => {
+				if (
+				  e instanceof Prisma.PrismaClientKnownRequestError &&
+				  e.code === 'P2003'
+				) {
+				  return Promise.reject(
+					new GraphQLError(
+					  `Cannot post comment on non-existing link with id '${args.linkId}'.`
+					)
+				  )
+				}
+				return Promise.reject(e)
+			  })
+			return comment
+		  }
+	  },
+	Link: {
+		 async comments (parent: Link, args: {}, context: GraphQLContext) {
+			return context.prisma.comment.findMany({
+				where: { linkId: parent.id },
+			})
+		},
 	},
 }
 
