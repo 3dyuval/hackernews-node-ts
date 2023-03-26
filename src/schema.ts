@@ -65,6 +65,11 @@ const resolvers = {
 			args: { description: string; url: string },
 			context: GraphQLContext
 		) {
+			//@ts-ignore
+			const auth0UserId = context.auth0?.sub
+			if (!auth0UserId) return Promise.reject(
+				new GraphQLError('Not authenticated')
+			)
 			return await context.prisma.link.create({
 				data: {
 					description: args.description,
