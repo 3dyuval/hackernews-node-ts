@@ -10,6 +10,7 @@ const typeDefinitions = /* GraphQL */ `
 		feed: [Link!]!
 		comment(id: ID!): Comment
 		link(id: ID!): Link
+		sub: String
 	}
 	type Mutation {
 		postLink(url: String!, description: String!): Link!
@@ -26,10 +27,15 @@ const typeDefinitions = /* GraphQL */ `
 		body: String!
 		link: Link
 	}
+
 `
 
 const resolvers = {
 	Query: {
+		sub: (root: any, args: any, context: any) => {
+			const auth0UserId = context.auth0.sub
+			return auth0UserId
+		},
 		info: () => 'This is an api from Hackernews',
 		feed: async (parent: unknown, args: {}, context: GraphQLContext) => {
 			return await context.prisma.link.findMany()

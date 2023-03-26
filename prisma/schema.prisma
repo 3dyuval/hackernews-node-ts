@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.sqlite"
+  provider = "postgres"
+  url      = env("POSTGRES_URL")
 }
 
 generator client {
