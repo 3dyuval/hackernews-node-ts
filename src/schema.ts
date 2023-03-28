@@ -3,6 +3,8 @@ import { Link } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import { GraphQLError } from 'graphql'
 import type { GraphQLContext } from './context'
+import {link, comment, db} from '../drizzle/schema'
+import {eq} from 'drizzle-orm/expressions'
 
 const typeDefinitions = /* GraphQL */ `
 	type Query {
@@ -32,25 +34,21 @@ const resolvers = {
 	Query: {
 		info: () => 'This is an api from Hackernews',
 		feed: async (parent: unknown, args: {}, context: GraphQLContext) => {
-			return await context.prisma.link.findMany()
+			return await context.db.select().from(link)
 		},
 		comment: async (
 			parent: unknown,
 			args: { id: string },
 			context: GraphQLContext
 		) => {
-			return await context.prisma.comment.findUnique({
-				where: { id: parseInt(args.id) },
-			})
+			return await context.db.select().from(comment).where(eq(comment.id, parseInt(args.id)))
 		},
 		link: async (
 			parent: unknown,
 			args: { id: string },
 			context: GraphQLContext
 		) => {
-			return context.prisma.link.findUnique({
-				where: { id: parseInt(args.id) },
-			})
+			return await context.db.select().from(comment).where(eq(comment.id, parseInt(args.id)))
 		},
 	},
 	Mutation: {
@@ -59,11 +57,9 @@ const resolvers = {
 			args: { description: string; url: string },
 			context: GraphQLContext
 		) {
-			return await context.prisma.link.create({
-				data: {
-					description: args.description,
-					url: args.url,
-				},
+			return await context.db.insert(link).values({
+				description: args.description,
+				url: args.url
 			})
 		},
 		async postCommentOnLink(
@@ -71,6 +67,7 @@ const resolvers = {
 			args: { linkId: string; body: string },
 			context: GraphQLContext
 		  ) {
+			//TODO switch to db
 			const comment = await context.prisma.comment
 			  .create({
 				data: {
