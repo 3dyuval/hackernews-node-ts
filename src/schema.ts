@@ -67,14 +67,10 @@ const resolvers = {
 			args: { linkId: string; body: string },
 			context: GraphQLContext
 		  ) {
-			//TODO switch to db
-			const comment = await context.prisma.comment
-			  .create({
-				data: {
-				  body: args.body,
-				  linkId: parseInt(args.linkId)
-				}
-			  })
+			const newComment = await context.db.insert(comment).values({
+				body: args.body,
+				linkId: parseInt(args.linkId)
+			})
 			  .catch((e: unknown) => {
 				if (
 				  e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -88,14 +84,12 @@ const resolvers = {
 				}
 				return Promise.reject(e)
 			  })
-			return comment
+			return newComment
 		  }
 	  },
 	Link: {
 		 async comments (parent: Link, args: {}, context: GraphQLContext) {
-			return context.prisma.comment.findMany({
-				where: { linkId: parent.id },
-			})
+			return context.db.select().from(comment).where(eq(comment.linkId, parent.id))
 		},
 	},
 }

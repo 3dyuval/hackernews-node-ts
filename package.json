@@ -14,7 +14,6 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
-		"@prisma/client": "4.11.0",
 		"@types/node": "18.15.3",
 		"cross-env": "7.0.3",
 		"drizzle-kit": "^0.17.1",
