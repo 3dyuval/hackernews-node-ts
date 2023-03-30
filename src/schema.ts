@@ -1,10 +1,9 @@
 import { makeExecutableSchema } from '@graphql-tools/schema'
-import { Link } from '@prisma/client'
-import { Prisma } from '@prisma/client'
 import { GraphQLError } from 'graphql'
 import type { GraphQLContext } from './context'
 import {link, comment, db} from '../drizzle/schema'
 import {eq} from 'drizzle-orm/expressions'
+import type { Link, Comment } from '../drizzle/schema'
 
 const typeDefinitions = /* GraphQL */ `
 	type Query {
@@ -73,8 +72,7 @@ const resolvers = {
 			})
 			  .catch((e: unknown) => {
 				if (
-				  e instanceof Prisma.PrismaClientKnownRequestError &&
-				  e.code === 'P2003'
+				  e
 				) {
 				  return Promise.reject(
 					new GraphQLError(

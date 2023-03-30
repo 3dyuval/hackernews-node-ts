@@ -1,9 +1,10 @@
 import { drizzle } from 'drizzle-orm/node-postgres'
-import {eq} from 'drizzle-orm/expressions'
 import {pgTable, serial, integer, varchar, timestamp,  } from 'drizzle-orm/pg-core'
-import {sql} from 'drizzle-orm/sql'
 import {InferModel} from 'drizzle-orm'
 import {Pool} from 'pg'
+import * as dotenv from 'dotenv'
+dotenv.config()
+
 
 export const link = pgTable('Link', {
     id: serial('id').primaryKey(),
@@ -20,7 +21,7 @@ export const comment = pgTable('Comment', {
 
 
 const pool = new Pool({
-    connectionString: 'postgres://postgres:postgres@localhost:5432/hackernews'
+    connectionString: process.env.POSTGRES_URL
 })
 
 export const db = drizzle(pool)
