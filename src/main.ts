@@ -4,7 +4,8 @@ import { schema } from './schema'
 import { createContext } from './context'
 
 async function main() {
-	const yoga = createYoga({ schema, context: createContext })
+	const context = createContext('hackernews')
+	const yoga = createYoga({ schema, context  })
 	const server = createServer(yoga)
 	server.listen(4000, () => {
 		console.info(`server is listening on http://localhost:4000/graphql`)
