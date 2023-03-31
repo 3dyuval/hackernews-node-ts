@@ -3,9 +3,9 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 
-const dbURI = process.env.MONGODB_URL!
-if (!dbURI) throw new Error ('Mongo DB URI not found in environment')
+const dbURL = process.env.MONGODB_URL!
+if (!dbURL) throw new Error ('Mongo DB URL not found in environment')
 
- export const client = new MongoClient(dbURI)
+ export const client = new MongoClient(dbURL)
 
     

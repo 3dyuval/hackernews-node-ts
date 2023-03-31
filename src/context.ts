@@ -10,7 +10,7 @@ export async function createContext(dbName: string): Promise<GraphQLContext> {
 
 	return {
 		client,
-		db: await client.db(dbName)
+		db: await client.connect().then((res) => res.db(dbName))
 	}
 }
 

@@ -4,7 +4,7 @@ import { schema } from './schema'
 import { createContext } from './context'
 
 async function main() {
-	const context = createContext('hackernews')
+	const context = await createContext('hackernews')
 	const yoga = createYoga({ schema, context  })
 	const server = createServer(yoga)
 	server.listen(4000, () => {

@@ -30,23 +30,21 @@ const resolvers = {
 	Query: {
 		info: () => 'This is an api from Hackernews',
 		feed: async (parent: unknown, args: {}, context: GraphQLContext) => {
-			return await context.db.collection('Link')
+			return await context.db.collection('Link').find()
 		},
 		comment: async (
 			parent: unknown,
 			args: { id: string },
 			context: GraphQLContext
 		) => {
-			return await context.db.collection('Comment')
-			// return await context.db.select().from(comment).where(eq(comment.id, parseInt(args.id)))
+			return await context.db.collection('Comment').find({id: args.id})
 		},
 		link: async (
 			parent: unknown,
 			args: { id: string },
 			context: GraphQLContext
 		) => {
-			return null
-			// return await context.db.select().from(comment).where(eq(comment.id, parseInt(args.id)))
+			return await context.db.collection('Link').find({id: args.id})
 		},
 	},
 	Mutation: {
