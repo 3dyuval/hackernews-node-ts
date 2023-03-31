@@ -1,13 +1,13 @@
-import { db} from '../drizzle/schema'
+import { client } from '../mongodb/schema'
 
 
 export type GraphQLContext = {
-	db: typeof db
+	client: typeof client
 }
 
 export function createContext(): GraphQLContext {
 	return {
-		db
+		client
 	}
 }
 

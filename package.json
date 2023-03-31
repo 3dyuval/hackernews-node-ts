@@ -29,6 +29,7 @@
 		"drizzle-orm": "^0.23.2",
 		"graphql": "^16.6.0",
 		"graphql-yoga": "3.7.3",
+		"mongodb": "5.1",
 		"pg": "^8.10.0"
 	}
 }
