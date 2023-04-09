@@ -5,8 +5,8 @@
 	"description": "Hcakernews API with Yoga, Prisma and Typescript",
 	"main": "src/main.ts",
 	"scripts": {
-		"dev:debug": "cross-env NODE_ENV=development ts-node-dev --transpile-only --respawn --inspect=4321 --project src/main.ts",
-		"dev": "cross-env NODE_ENV=development ts-node-dev --exit-child --respawn src/main.ts",
+		"dev:debug": "cross-env NODE_ENV=development ts-node-dev --transpile-only --respawn --inspect=4321 --project server/main.ts",
+		"dev": "cross-env NODE_ENV=development ts-node-dev --exit-child --respawn server/main.ts",
 		"build": "rimraf ./build && tsc",
 		"start": "npm run build && node build/main.js"
 	},
