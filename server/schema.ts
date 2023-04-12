@@ -10,10 +10,12 @@ const typeDefinitions = /* GraphQL */ `
 		feed: [Link!]!
 		comment(id: ID!): Comment
 		link(id: ID!): Link
+		topic(id: String!): Topic
 	}
 	type Mutation {
 		postLink(url: String!, description: String!): Link!
 		postCommentOnLink(linkId: ID!, body: String!): Comment!
+		createTopic(id: String!, name: String!): Topic!
 	}
 	type Link {
 		id: ID!
@@ -25,6 +27,10 @@ const typeDefinitions = /* GraphQL */ `
 		id: ID!
 		body: String!
 		link: Link
+	}
+	type Topic {
+		id: String!
+		name: String!
 	}
 `
 
@@ -52,6 +58,15 @@ const resolvers = {
 				where: { id: parseInt(args.id) },
 			})
 		},
+		topic: async (
+			parent: unknown,
+			args: { id: string },
+			context: GraphQLContext
+		) => {
+			return context.prisma.topic.findUnique({
+				where: {id: args.id}
+			})
+		}
 	},
 	Mutation: {
 		async postLink (
@@ -92,7 +107,31 @@ const resolvers = {
 				return Promise.reject(e)
 			  })
 			return comment
-		  }
+		  },
+		createTopic: async (
+			parent: unknown,
+			args: {id: string; name: string},
+			context: GraphQLContext
+		) => {
+			const topic = await context.prisma.topic.create({
+				data: {
+					id: args.id,
+					name: args.name
+				}
+			}).catch((e: any) => {
+				if (
+					e instanceof Prisma.PrismaClientKnownRequestError &&
+					e.code === 'P2002'
+				  ) {
+					return Promise.reject(
+					  new GraphQLError(
+						`Cannot create topic with existing topic id '${args.id}'.`
+					  )
+					)
+				}
+			})
+			return topic
+		}
 	  },
 	Link: {
 		 async comments (parent: Link, args: {}, context: GraphQLContext) {
