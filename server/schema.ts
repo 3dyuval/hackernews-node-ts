@@ -19,6 +19,7 @@ const typeDefinitions = /* GraphQL */ `
 	}
 	type Link {
 		id: ID!
+		topic: String
 		description: String!
 		url: String!
 		comments: [Comment]

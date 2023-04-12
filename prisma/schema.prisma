@@ -14,6 +14,7 @@ model Topic {
 
 model Link {
   id          Int       @id @default(autoincrement())
+  topic       String?
   createdAt   DateTime  @default(now())
   description String
   url         String
