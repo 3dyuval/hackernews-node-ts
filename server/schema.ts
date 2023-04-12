@@ -3,6 +3,8 @@ import { Link } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import { GraphQLError } from 'graphql'
 import type { GraphQLContext } from './context'
+import {nextBatch} from 'next-batch'
+
 
 const typeDefinitions = /* GraphQL */ `
 	type Query {
@@ -136,9 +138,20 @@ const resolvers = {
 	  },
 	Link: {
 		 async comments (parent: Link, args: {}, context: GraphQLContext) {
-			return context.prisma.comment.findMany({
-				where: { linkId: parent.id },
+			const taskBatch = nextBatch({
+				key: "comments",
+				batchHandler: async (linkIds: { id: number }[]) => {
+					const comments =  await context.prisma.comment.findMany({
+						where: {linkId: {in: linkIds.map((key) => key.id)} }
+					})
+					const result = new Map()
+					linkIds.forEach((key) => {
+						result.set(key, comments.filter((comment) => comment.linkId === key.id))
+					})
+					return result
+				},
 			})
+			return await taskBatch.add( {id: parent.id} )
 		},
 	},
 }
