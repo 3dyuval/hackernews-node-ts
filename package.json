@@ -5,6 +5,7 @@
 	"description": "Hcakernews API with Yoga, Prisma and Typescript",
 	"main": "src/main.ts",
 	"scripts": {
+		"dev:tsc": "npx tsc --noEmit --skipLibCheck",
 		"dev:debug": "cross-env NODE_ENV=development ts-node-dev --transpile-only --respawn --inspect=4321 --project src/main.ts",
 		"dev": "cross-env NODE_ENV=development ts-node-dev --exit-child --respawn src/main.ts",
 		"build": "rimraf ./build && tsc",
@@ -21,7 +22,7 @@
 		"rimraf": "^4.4.1",
 		"ts-node": "10.9.1",
 		"ts-node-dev": "2.0.0",
-		"typescript": "5.0.2"
+		"typescript": "^5.0.4"
 	},
 	"dependencies": {
 		"@graphql-tools/schema": "^9.0.17",
