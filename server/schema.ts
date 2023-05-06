@@ -4,16 +4,11 @@ import { Prisma } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import type { GraphQLContext } from "./context";
 import { nextBatch } from "next-batch";
+import { findManyCursorConnection } from "@devoxa/prisma-relay-cursor-connection";
 
 export const typeDefinitions = /* GraphQL */ `
   interface Node {
     id: ID!
-  }
-
-  type Comment implements Node {
-    id: ID!
-    body: String!
-    link: LinkConnection
   }
 
   type LinkConnection {
@@ -41,6 +36,12 @@ export const typeDefinitions = /* GraphQL */ `
     comments: [Comment]
   }
 
+  type Comment implements Node {
+    id: ID!
+    body: String!
+    link: LinkConnection
+  }
+
   type Topic {
     id: String!
     name: String!
@@ -48,7 +49,7 @@ export const typeDefinitions = /* GraphQL */ `
 
   type Query {
     info: String!
-    feed: [Link!]!
+    feed: LinkConnection!
     comment(id: ID!): Comment
     link(id: ID!): Link
     topic(id: String!): Topic
@@ -65,7 +66,11 @@ const resolvers = {
   Query: {
     info: () => "This is an api from Hackernews",
     feed: async (parent: unknown, args: {}, context: GraphQLContext) => {
-      return await context.prisma.link.findMany();
+      return await findManyCursorConnection(
+        () => context.prisma.link.findMany(args),
+        () => context.prisma.link.count(),
+        { first: 3 }
+      );
     },
     comment: async (
       parent: unknown,
@@ -81,9 +86,13 @@ const resolvers = {
       args: { id: string },
       context: GraphQLContext
     ) => {
-      return context.prisma.link.findUnique({
-        where: { id: parseInt(args.id) },
-      });
+      const id = parseInt(args.id);
+      if (isNaN(id)) {
+        return Promise.reject(
+          new GraphQLError(`Not valid link Id: '${args.id}'`)
+        );
+      }
+      return context.prisma.link.findUnique({ where: { id } });
     },
     topic: async (
       parent: unknown,
