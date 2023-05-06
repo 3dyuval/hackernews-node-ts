@@ -26,4 +26,5 @@ model Comment {
   body   String
   link   Link?  @relation(fields: [linkId], references: [id])
   linkId Int?
+  commentId Int
 }
