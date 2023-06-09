@@ -14,7 +14,7 @@ export const typeDefinitions = /* GraphQL */ `
   type LinkConnection {
     edges: [LinkEdge]
     pageInfo: PageInfo!
-	totalCount: Int!
+	  totalCount: Int!
   }
 
   type LinkEdge {
@@ -60,6 +60,7 @@ export const typeDefinitions = /* GraphQL */ `
   }
 
   type Query {
+    node(id: ID!): Node //! TODO
     info: String!
     feed(cursor: String): LinkConnection!
     comment(id: ID!): Comment
@@ -96,7 +97,7 @@ const resolvers = {
       const result =  await findManyCursorConnection(
         (query) => context.prisma.link.findMany({...query, include}),
         () => context.prisma.link.count(),
-        { first: 3, after:  args.cursor },
+        { first: 30, after: args.cursor },
         {
           encodeCursor,
           decodeCursor,
