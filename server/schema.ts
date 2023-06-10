@@ -83,6 +83,7 @@ function decodeCursor(cursor: string) {
   return JSON.parse(Buffer.from(cursor, "base64").toString("ascii"));
 }
 
+
 const resolvers = {
   Query: {
     info: () => "Hackernews Clone",
@@ -134,13 +135,17 @@ const resolvers = {
       args: { id: string },
       context: GraphQLContext
     ) => {
-      const id = parseInt(args.id);
-      if (isNaN(id)) {
-        return Promise.reject(
-          new GraphQLError(`Not valid link Id: '${args.id}'`)
-        );
-      }
-      const where = { id };
+
+      const cursor = decodeCursor(args.id);
+      // if (isNaN(id)) {
+      //   return Promise.reject(
+      //     new GraphQLError(`Not valid link Id: '${args.id}'`)
+      //   );
+      // }
+      
+      const [key, id] = Object.entries(decodeCursor(args.id))[0]
+      
+      const where = { id } as {id: number};
       const include = { _count: { select: { linkComment: true } } };
 
       const result = await context.prisma.link.findUnique({ where, include });
