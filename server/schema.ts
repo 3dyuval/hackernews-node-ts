@@ -120,7 +120,13 @@ const resolvers = {
       const [key, id] = Object.entries(decodeCursor(args.id))[0]
       const result =  await context.prisma[key].findUnique({ where: { id }})
       result.id = args.id
+
       return {...result, __typename: key}
+    },
+    viewer: async (
+
+    ) => {
+      return {name: 'yo', joined: 'yo'}
     },
     feed: async (
       parent: unknown,
@@ -128,8 +134,6 @@ const resolvers = {
       context: GraphQLContext
     ) => {
       const include = { _count: { select: { linkComment: true } } };
-
-
       const result =  await findManyCursorConnection(
         (query) => context.prisma.link.findMany({...query, include}),
         () => context.prisma.link.count(),
@@ -186,6 +190,11 @@ const resolvers = {
         where: { id: args.id },
       });
     },
+  },
+  Viewer: {
+    async actor() {
+      return {name: 'Yo', joined: 'asdasdasd', __typename: 'User'}
+    }
   },
   Mutation: {
     async postLink(

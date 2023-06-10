@@ -1,5 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
+import type { Root } from './api'
+
+
 
 const keys = ['created_at', 'title', 'url',]
 
@@ -12,10 +15,11 @@ const add = (query, entry) => prisma.link.create({ data: {
 
 async function getData (query) {
 
-    const {hits} = await fetch(`http://hn.algolia.com/api/v1/search?query=${query}&tags=story`)
+    const data  = await fetch(`http://hn.algolia.com/api/v1/search?query=${query}&tags=story`)
     .then(response => response.json()).catch(console.error)
 
-    console.log (hits)
+    const hits: Root[] = data.hits
+
     if (!hits) {
         console.error('hits not ok', {hits})
         return 
@@ -37,4 +41,5 @@ async function getData (query) {
 getData('chrome')
 getData('development')
 getData('fun')
+
 
