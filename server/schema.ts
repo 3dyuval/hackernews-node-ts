@@ -60,7 +60,7 @@ export const typeDefinitions = /* GraphQL */ `
   }
 
   type Query {
-    node(id: ID!): Node //! TODO
+    node(id: ID!): Node 
     info: String!
     feed(cursor: String): LinkConnection!
     comment(id: ID!): Comment
@@ -86,6 +86,17 @@ function decodeCursor(cursor: string) {
 const resolvers = {
   Query: {
     info: () => "Hackernews Clone",
+    node: async (
+      parent: unknown,
+      args: { id: string },
+      context: GraphQLContext
+    ) => {
+
+      const [key, id] = Object.entries(decodeCursor(args.id))[0]
+      const result =  await context.prisma[key].findUnique({ where: { id }})
+      result.id = args.id
+      return {...result, __typename: key}
+    },
     feed: async (
       parent: unknown,
       args: { cursor?: string },
