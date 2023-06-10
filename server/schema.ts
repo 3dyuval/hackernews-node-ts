@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { Link, Prisma } from "@prisma/client";
+import { Link, Prisma, Comment } from "@prisma/client";
 import { GraphQLError } from "graphql";
 import type { GraphQLContext } from "./context";
 import { nextBatch } from "next-batch";
@@ -9,6 +9,26 @@ import { GraphQLResolveInfo } from "graphql";
 export const typeDefinitions = /* GraphQL */ `
   interface Node {
     id: ID!
+  }
+
+  interface Actor {
+    id: ID!
+    name: String
+    profilePicture: Image
+    joined: String
+  }
+
+  type User implements Node & Actor {
+    id: ID!
+    name: String
+    email: String
+    profilePicture: Image
+    joined: String
+  }
+
+  type Image {
+    url(height: Int, width: Int): String!
+    altText: String
   }
 
   type LinkConnection {
@@ -51,7 +71,7 @@ export const typeDefinitions = /* GraphQL */ `
   type Comment implements Node {
     id: ID!
     body: String!
-    link: LinkConnection
+    link: Link
   }
 
   type Topic {
@@ -60,12 +80,17 @@ export const typeDefinitions = /* GraphQL */ `
   }
 
   type Query {
+    viewer: Viewer
     node(id: ID!): Node 
     info: String!
     feed(cursor: String): LinkConnection!
     comment(id: ID!): Comment
     link(id: ID!): Link
     topic(id: String!): Topic
+  }
+
+  type Viewer {
+    actor: Actor
   }
 
   type Mutation {
@@ -92,7 +117,6 @@ const resolvers = {
       args: { id: string },
       context: GraphQLContext
     ) => {
-
       const [key, id] = Object.entries(decodeCursor(args.id))[0]
       const result =  await context.prisma[key].findUnique({ where: { id }})
       result.id = args.id
@@ -151,12 +175,13 @@ const resolvers = {
       const result = await context.prisma.link.findUnique({ where, include });
       const { linkComment: totalComments } = result._count;
       return { ...result, totalComments };
+
     },
     topic: async (
       parent: unknown,
       args: { id: string },
       context: GraphQLContext
-    ) => {
+    ) => {  
       return context.prisma.topic.findUnique({
         where: { id: args.id },
       });
@@ -232,7 +257,7 @@ const resolvers = {
   Link: {
     async comments(parent: Link, args: {}, context: GraphQLContext) {
 
-      const where = { linkId: parent.id}
+    const where = { linkId: parent.id}
 
      const result =  await findManyCursorConnection(
       () => context.prisma.comment.findMany({where}),
@@ -244,6 +269,14 @@ const resolvers = {
       }
      )
      return result
+    }
+  },
+  Comment: {
+    async link(parent: Comment, args: {}, context: GraphQLContext) {
+
+    const where = { id: parent.linkId}
+
+    return await context.prisma.link.findUnique({where})
     }
   }
 };

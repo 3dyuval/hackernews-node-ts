@@ -27,3 +27,12 @@ model Comment {
   link   Link?  @relation(fields: [linkId], references: [id])
   linkId Int?
 }
+
+
+model User {
+  id    Int @id @default(autoincrement())
+  name  String
+  email String
+  profilePicture  String
+  joined  DateTime @default(now())
+}
