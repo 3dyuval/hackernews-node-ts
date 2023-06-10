@@ -56,6 +56,7 @@ export const typeDefinitions = /* GraphQL */ `
     url: String!
     comments: CommentConnection
     totalComments: Int!
+    poster: User
   }
 
   type CommentConnection {
@@ -278,6 +279,14 @@ const resolvers = {
       }
      )
      return result
+    },
+
+    async poster(parent: Link, args: {}, context: GraphQLContext) {
+
+      const [key, id] = Object.entries(decodeCursor(parent.id.toString()))[0]
+      //@ts-ignore 
+      const result =  await context.prisma.user.findUnique({where: { id }})
+      return result
     }
   },
   Comment: {

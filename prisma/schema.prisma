@@ -19,8 +19,8 @@ model Link {
   description String
   url         String
   linkComment Comment[]
-  user        User?   @relation(fields: [userId], references: [id])
-  userId      Int?
+  user        User   @relation(fields: [userId], references: [id])
+  userId      Int
 }
 
 model Comment {
