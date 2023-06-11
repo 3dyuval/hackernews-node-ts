@@ -55,6 +55,7 @@ export const typeDefinitions = /* GraphQL */ `
     description: String!
     url: String!
     comments: CommentConnection
+    createdAt: String!
     totalComments: Int!
     poster: User
   }
@@ -125,8 +126,12 @@ const resolvers = {
       return {...result, __typename: key}
     },
     viewer: async (
-
+        parent: unknown,
+        args: {},
+        content: GraphQLContext
     ) => {
+
+      
       return {name: 'yo', joined: 'yo'}
     },
     feed: async (
@@ -164,7 +169,6 @@ const resolvers = {
       args: { id: string },
       context: GraphQLContext
     ) => {
-
       const cursor = decodeCursor(args.id);
       // if (isNaN(id)) {
       //   return Promise.reject(
@@ -193,8 +197,13 @@ const resolvers = {
     },
   },
   Viewer: {
-    async actor() {
-      return {name: 'Yo', joined: 'asdasdasd', __typename: 'User'}
+    async actor(
+      parent: unknown,
+      args: {},
+      context: GraphQLContext
+    ) {
+      const result = await context.prisma.user.findUnique({where: {id: 1}})
+      return {...result, __typename: 'User'}
     }
   },
   Mutation: {
@@ -207,6 +216,7 @@ const resolvers = {
         data: {
           description: args.description,
           url: args.url,
+          userId: 1 //!TODO get userID
         },
       });
     },
