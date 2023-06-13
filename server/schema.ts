@@ -1,5 +1,5 @@
 import { makeExecutableSchema } from "@graphql-tools/schema";
-import { Link, Prisma, Comment } from "@prisma/client";
+import { Link, Prisma, Comment} from "@prisma/client";
 import { GraphQLError } from "graphql";
 import type { GraphQLContext } from "./context";
 import { nextBatch } from "next-batch";
@@ -34,7 +34,7 @@ export const typeDefinitions = /* GraphQL */ `
   type LinkConnection {
     edges: [LinkEdge]
     pageInfo: PageInfo!
-	  totalCount: Int!
+    totalCount: Int!
   }
 
   type LinkEdge {
@@ -83,9 +83,9 @@ export const typeDefinitions = /* GraphQL */ `
 
   type Query {
     viewer: Viewer
-    node(id: ID!): Node 
+    node(id: ID!): Node
     info: String!
-    feed(cursor: String): LinkConnection!
+    feed(first: Int, after: String, date: String): LinkConnection!
     comment(id: ID!): Comment
     link(id: ID!): Link
     topic(id: String!): Topic
@@ -110,7 +110,6 @@ function decodeCursor(cursor: string) {
   return JSON.parse(Buffer.from(cursor, "base64").toString("ascii"));
 }
 
-
 const resolvers = {
   Query: {
     info: () => "Hackernews Clone",
@@ -119,31 +118,37 @@ const resolvers = {
       args: { id: string },
       context: GraphQLContext
     ) => {
-      const [key, id] = Object.entries(decodeCursor(args.id))[0]
-      const result =  await context.prisma[key].findUnique({ where: { id }})
-      result.id = args.id
+      const [key, id] = Object.entries(decodeCursor(args.id))[0];
+      const result = await context.prisma[key].findUnique({ where: { id } });
+      result.id = args.id;
 
-      return {...result, __typename: key}
+      return { ...result, __typename: key };
     },
-    viewer: async (
-        parent: unknown,
-        args: {},
-        content: GraphQLContext
-    ) => {
-
-      
-      return {name: 'yo', joined: 'yo'}
+    viewer: async (parent: unknown, args: {}, content: GraphQLContext) => {
+      return { name: "yo", joined: "yo" };
     },
     feed: async (
       parent: unknown,
-      args: { cursor?: string },
+      args: { first?: string; after?: string; date?: string },
       context: GraphQLContext
     ) => {
       const include = { _count: { select: { linkComment: true } } };
-      const result =  await findManyCursorConnection(
-        (query) => context.prisma.link.findMany({...query, include}),
+      const where: any = { createdAt: {lte: undefined}  }
+
+      if (args.date) {
+        const parts = args.date.split("-");
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Months are zero-based in JavaScript (0-11)
+        const day = parseInt(parts[2], 10);
+        const date = new Date(year, month, day);
+        where.createdAt.lte =  date.toISOString()
+      }
+          
+
+      const result = await findManyCursorConnection(
+        (query) => context.prisma.link.findMany({ ...query, where, include }),
         () => context.prisma.link.count(),
-        { first: 30, after: args.cursor },
+        { first: 30, after: args.after },
         {
           encodeCursor,
           decodeCursor,
@@ -153,7 +158,7 @@ const resolvers = {
         }
       );
 
-	  return result
+      return result;
     },
     comment: async (
       parent: unknown,
@@ -175,36 +180,31 @@ const resolvers = {
       //     new GraphQLError(`Not valid link Id: '${args.id}'`)
       //   );
       // }
-      
-      const [key, id] = Object.entries(decodeCursor(args.id))[0]
-      
-      const where = { id } as {id: number};
+
+      const [key, id] = Object.entries(decodeCursor(args.id))[0];
+
+      const where = { id } as { id: number };
       const include = { _count: { select: { linkComment: true } } };
 
       const result = await context.prisma.link.findUnique({ where, include });
       const { linkComment: totalComments } = result._count;
       return { ...result, totalComments };
-
     },
     topic: async (
       parent: unknown,
       args: { id: string },
       context: GraphQLContext
-    ) => {  
+    ) => {
       return context.prisma.topic.findUnique({
         where: { id: args.id },
       });
     },
   },
   Viewer: {
-    async actor(
-      parent: unknown,
-      args: {},
-      context: GraphQLContext
-    ) {
-      const result = await context.prisma.user.findUnique({where: {id: 1}})
-      return {...result, __typename: 'User'}
-    }
+    async actor(parent: unknown, args: {}, context: GraphQLContext) {
+      const result = await context.prisma.user.findUnique({ where: { id: 1 } });
+      return { ...result, __typename: "User" };
+    },
   },
   Mutation: {
     async postLink(
@@ -216,7 +216,7 @@ const resolvers = {
         data: {
           description: args.description,
           url: args.url,
-          userId: 1 //!TODO get userID
+          userId: 1, //!TODO get userID
         },
       });
     },
@@ -276,37 +276,34 @@ const resolvers = {
   },
   Link: {
     async comments(parent: Link, args: {}, context: GraphQLContext) {
+      const where = { linkId: parent.id };
 
-    const where = { linkId: parent.id}
-
-     const result =  await findManyCursorConnection(
-      () => context.prisma.comment.findMany({where}),
-      () => context.prisma.comment.count({where}),
-      {},
-      {
-        encodeCursor,
-        decodeCursor,
-      }
-     )
-     return result
+      const result = await findManyCursorConnection(
+        () => context.prisma.comment.findMany({ where }),
+        () => context.prisma.comment.count({ where }),
+        {},
+        {
+          encodeCursor,
+          decodeCursor,
+        }
+      );
+      return result;
     },
 
     async poster(parent: Link, args: {}, context: GraphQLContext) {
-
-      const [key, id] = Object.entries(decodeCursor(parent.id.toString()))[0]
-      //@ts-ignore 
-      const result =  await context.prisma.user.findUnique({where: { id }})
-      return result
-    }
+      const [key, id] = Object.entries(decodeCursor(parent.id.toString()))[0];
+      //@ts-ignore
+      const result = await context.prisma.user.findUnique({ where: { id } });
+      return result;
+    },
   },
   Comment: {
     async link(parent: Comment, args: {}, context: GraphQLContext) {
+      const where = { id: parent.linkId };
 
-    const where = { id: parent.linkId}
-
-    return await context.prisma.link.findUnique({where})
-    }
-  }
+      return await context.prisma.link.findUnique({ where });
+    },
+  },
 };
 
 export const schema = makeExecutableSchema({
