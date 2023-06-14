@@ -1,0 +1,15 @@
+_id: ut_852551fea99d435fbb521e055aca3728
+type: UnitTest
+parentId: uts_e7bd312bdd3f4bdc846b34ed7878f4e3
+modified: 1686719945186
+created: 1686719184135
+requestId: req_a44e1631cfbc41208d6ff3fabfbf4387
+name: Returns Error on invalid date
+code: >
+  const response = await insomnia.send().then(response =>
+  JSON.parse(response.data))
+
+
+  expect(response).to.have.property("errors");
+
+  expect(response.data).to.be.a('null');

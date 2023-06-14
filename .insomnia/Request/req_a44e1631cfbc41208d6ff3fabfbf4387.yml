@@ -1,0 +1,28 @@
+_id: req_a44e1631cfbc41208d6ff3fabfbf4387
+type: Request
+parentId: wrk_609b25a9276e433d8b3f72eac10789d0
+modified: 1686719653826
+created: 1686719647257
+url: "{{ _.graphql }}"
+name: feed(invalidDate)
+description: ""
+method: POST
+body:
+  mimeType: application/graphql
+  text: '{"query":"query FeedQuery($date: String!)  {\n\tfeed(date: $date)
+    {\n\t\ttotalCount\n\t\tedges {\n\t\t\tcursor\n\t\t\tnode
+    {\n\t\t\t\tid\n\t\t\t\tdescription\n\t\t\t\turl\n\t\t\t}\n\t\t}\n\t}\n}\n","operationName":"FeedQuery","variables":{"date":"{{
+    _.invalidDate }}"}}'
+parameters: []
+headers:
+  - name: Content-Type
+    value: application/json
+authentication: {}
+metaSortKey: -1686379946224.0625
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
