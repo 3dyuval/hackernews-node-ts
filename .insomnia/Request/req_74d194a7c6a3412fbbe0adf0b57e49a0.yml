@@ -1,0 +1,27 @@
+_id: req_74d194a7c6a3412fbbe0adf0b57e49a0
+type: Request
+parentId: wrk_609b25a9276e433d8b3f72eac10789d0
+modified: 1686397282988
+created: 1686397266024
+url: "{{ _.graphql }}"
+name: node(user)
+description: ""
+method: POST
+body:
+  mimeType: application/graphql
+  text: '{"query":"query NodeQuery ($id: ID!) {\n\tnode(id: $id)
+    {\n\t\tid\n\t\t... on User
+    {\n\t\t\tid\n\t\t\tname\n\t\t\temail\n\t\t}\n\t}\n}\n","operationName":"NodeQuery","variables":{"id":"eyJVc2VyIjoxfQ=="}}'
+parameters: []
+headers:
+  - name: Content-Type
+    value: application/json
+authentication: {}
+metaSortKey: -1686376237829
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
