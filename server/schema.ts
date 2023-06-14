@@ -93,6 +93,7 @@ export const typeDefinitions = /* GraphQL */ `
 
 	type Viewer {
 		actor: Actor
+		feed(first: Int, after: String, date: String): LinkConnection!
 	}
 
 	type Mutation {
@@ -132,6 +133,7 @@ const resolvers = {
 			args: { first?: string; after?: string; date?: string },
 			context: GraphQLContext
 		) => {
+
 			const include = { _count: { select: { linkComment: true } } }
 			const where: any = { createdAt: { lte: undefined } }
 
@@ -157,7 +159,7 @@ const resolvers = {
 			}
 
 			return await findManyCursorConnection(
-				query => context.prisma.link.findMany({ ...query, where, include }),
+				query => context.prisma.link.findMany({ ...query, where, include, orderBy: [{createdAt: "desc"}] }),
 				() => context.prisma.link.count(),
 				{ first: 30, after: args.after },
 				{
