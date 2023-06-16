@@ -21,7 +21,8 @@
 		"rimraf": "^5.0.0",
 		"ts-node": "10.9.1",
 		"ts-node-dev": "2.0.0",
-		"typescript": "5.0.4"
+		"typescript": "5.0.4",
+		"@fusionauth/typescript-client": "^1.45.0"
 	},
 	"dependencies": {
 		"@devoxa/prisma-relay-cursor-connection": "^2.2.2",
