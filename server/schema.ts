@@ -85,7 +85,7 @@ export const typeDefinitions = /* GraphQL */ `
     viewer: Viewer
     node(id: ID!): Node
     info: String!
-    feed(first: Int, after: String, date: String): LinkConnection!
+    feed(first: Int, after: String, date: String, orderBy: String): LinkConnection!
     comment(id: ID!): Comment
     link(id: ID!): Link
     topic(id: String!): Topic
@@ -129,7 +129,7 @@ const resolvers = {
     viewer: async (parent: unknown, args: {}, content: GraphQLContext) => {
       return { name: 'yo', joined: 'yo' };
     },
-    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string }, context: GraphQLContext) => {
+    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string, orderBy: string}, context: GraphQLContext) => {
       const include = { _count: { select: { linkComment: true } } };
       const where: any = { createdAt: { lte: undefined } };
 
@@ -141,6 +141,7 @@ const resolvers = {
             new GraphQLError(`Date argument '${args.date.slice(0, 10)}' does not match YYYY-MM-DD.'`)
           );
         }
+
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1; // Months are zero-based in JavaScript (0-11)
         const day = parseInt(parts[2], 10);
@@ -158,7 +159,7 @@ const resolvers = {
             ...query,
             where,
             include,
-            orderBy: [{ createdAt: 'desc' }],
+            orderBy: [ { createdAt: 'desc' }],
           }),
         () => context.prisma.link.count(),
         { first: 30, after: args.after },
