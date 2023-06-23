@@ -129,10 +129,15 @@ const resolvers = {
     viewer: async (parent: unknown, args: {}, content: GraphQLContext) => {
       return { name: 'yo', joined: 'yo' };
     },
-    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string, orderBy: string}, context: GraphQLContext) => {
+    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string, orderBy?: 'comments'}, context: GraphQLContext) => {
       const include = { _count: { select: { linkComment: true } } };
       const where: any = { createdAt: { lte: undefined } };
+      const orderBy: any[] = [{ createdAt: 'desc' }]
 
+      if (args.orderBy === 'comments') {
+        orderBy.unshift({linkComment: {_count: 'desc'}})
+      }
+      
       if (typeof args.date === 'string' && args.date.includes('-')) {
         const parts = args.date.split('-');
 
@@ -159,7 +164,7 @@ const resolvers = {
             ...query,
             where,
             include,
-            orderBy: [ { createdAt: 'desc' }],
+            orderBy
           }),
         () => context.prisma.link.count(),
         { first: 30, after: args.after },
