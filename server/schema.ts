@@ -1,3 +1,4 @@
+import { FusionAuthClient } from '@fusionauth/typescript-client';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { Link, Prisma, Comment } from '@prisma/client';
 import { GraphQLError } from 'graphql';
@@ -115,15 +116,14 @@ const resolvers = {
     info: () => 'Hackernews Clone',
     node: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       const [key, id] = Object.entries(decodeCursor(args.id))[0];
-      const result = await context.prisma[key].findUnique({ where: { id } })
-	  .catch((e: Prisma.PrismaClientUnknownRequestError) => {
-		if (e instanceof Prisma.PrismaClientKnownRequestError) {
-		  return Promise.reject(
-			new GraphQLError(`Did not found record with id '${id}' on '${key}'.`)
-		  );
-		}
-	});
-	
+      const result = await context.prisma[key]
+        .findUnique({ where: { id } })
+        .catch((e: Prisma.PrismaClientUnknownRequestError) => {
+          if (e instanceof Prisma.PrismaClientKnownRequestError) {
+            return Promise.reject(new GraphQLError(`Did not found record with id '${id}' on '${key}'.`));
+          }
+        });
+
       return { ...result, id: args.id, __typename: key };
     },
     viewer: async (parent: unknown, args: {}, content: GraphQLContext) => {
@@ -177,14 +177,12 @@ const resolvers = {
       });
     },
     link: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
-
       const [key, id] = Object.entries(decodeCursor(args.id))[0];
       const where = { id } as { id: number };
       const include = { _count: { select: { linkComment: true } } };
       const result = await context.prisma.link.findUnique({ where, include });
       const { linkComment: totalComments } = result._count;
       return { ...result, totalComments };
-
     },
     topic: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return context.prisma.topic.findUnique({
@@ -200,13 +198,14 @@ const resolvers = {
   },
   Mutation: {
     async postLink(parent: unknown, args: { description: string; url: string }, context: GraphQLContext) {
-      return await context.prisma.link.create({
+      const result =  await context.prisma.link.create({
         data: {
           description: args.description,
           url: args.url,
           userId: 1, //!TODO get userID
         },
       });
+      return {...result, id: encodeCursor({link: result.id})}
     },
     async postCommentOnLink(parent: unknown, args: { linkId: string; body: string }, context: GraphQLContext) {
       const comment = await context.prisma.comment
