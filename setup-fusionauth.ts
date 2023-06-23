@@ -5,6 +5,8 @@ const {FusionAuthClient} = require('@fusionauth/typescript-client');
 let APPLICATION_ID = "cddc93d6-e4b3-4754-8bc5-b85e028fb789";
 let RSA_KEY_ID = "31bceb6d-4cf9-46a6-b371-6b09a757b541"
 
+const name = "Hackernews Clone"
+
 let tenant , user
 
 // You must supply your API key as an environment variable
@@ -37,7 +39,7 @@ async function patchTenant(client, tenant) {
 
 async function generateKey(client) {
   try {
-    let clientResponse = await client.generateKey(RSA_KEY_ID, {"key": {"algorithm":"RS256", "name":"For JSExampleApp", "length": 2048}})
+    let clientResponse = await client.generateKey(RSA_KEY_ID, {"key": {"algorithm":"RS256", "name":`For ${name}`, "length": 2048}})
   } catch (error) {
     console.log("couldn't create RSA key " + JSON.stringify(error))
     process.exit(1)
@@ -51,7 +53,7 @@ async function enableCORS(client) {
       "allowCredentials": true,
       "allowedHeaders": [ "Accept", "Access-Control-Request-Headers", "Access-Control-Request-Method", "X-Requested-With", "Authorization", "Content-Type", "Last-Modified", "Origin" ],
       "allowedMethods": [ "PUT", "GET", "POST", "OPTIONS" ],
-      "allowedOrigins": [ "http://localhost:5173" ],
+      "allowedOrigins": [ "http://localhost:3030" ],
       "debug": false,
       "enabled": true,
       "exposedHeaders": [ "Access-Control-Allow-Origin", "Access-Control-Allow-Credential" ],
@@ -71,15 +73,15 @@ async function enableCORS(client) {
 async function createApplication(client) {
 
 const application = {}
-  application["name"] = "JSExampleApp"
+  application["name"] = name
 
   application["oauthConfiguration"] = {}
-  application["oauthConfiguration"]["authorizedRedirectURLs"] = ["http://localhost:5173"]
+  application["oauthConfiguration"]["authorizedRedirectURLs"] = ["http://localhost:3030"]
 
   application["oauthConfiguration"]["requireRegistration"] = true
   application["oauthConfiguration"]["enabledGrants"] = ["authorization_code", "refresh_token"]
-  application["oauthConfiguration"]["logoutURL"] = "http://localhost:5173/"
-  application["oauthConfiguration"]["clientSecret"] = "change-this-in-production-to-be-a-real-secret"
+  application["oauthConfiguration"]["logoutURL"] = "http://localhost:3030/"
+  application["oauthConfiguration"]["clientSecret"] = "yBv77l82EGigoOApFFNZmwNUUuu23kG4OlU_1eO0uuE"
 
   // assign key from above to sign our tokens. This needs to be asymmetric
   application["jwtConfiguration"] = {}

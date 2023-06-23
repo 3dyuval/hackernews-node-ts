@@ -6,14 +6,17 @@
 	"main": "src/main.ts",
 	"scripts": {
 		"dev:debug": "cross-env NODE_ENV=development ts-node-dev --transpile-only --respawn --inspect=4321 --project server/main.ts",
-		"dev": "cross-env NODE_ENV=development ts-node-dev --exit-child --respawn server/main.ts",
+		"yoga": "cross-env NODE_ENV=development ts-node-dev --exit-child --respawn server/main.ts",
+		"fusionauth": "docker-compose up",
+		"dev": "concurrently \"npm run fusionauth\" \"npm run yoga\" ",
 		"build": "rimraf ./build && tsc",
-		"start": "npm run build && node build/main.js"
+		"start": "concurrently \"npm run fusionauth\" \"npm run build && node build/main.js\""
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
+		"@fusionauth/typescript-client": "^1.45.0",
 		"@prisma/client": "^4.3.0",
 		"@types/node": "20.1.0",
 		"cross-env": "7.0.3",
@@ -21,14 +24,16 @@
 		"rimraf": "^5.0.0",
 		"ts-node": "10.9.1",
 		"ts-node-dev": "2.0.0",
-		"typescript": "5.0.4",
-		"@fusionauth/typescript-client": "^1.45.0"
+		"typescript": "5.0.4"
 	},
 	"dependencies": {
 		"@devoxa/prisma-relay-cursor-connection": "^2.2.2",
+		"@envelop/generic-auth": "^6.0.0",
 		"@graphql-tools/schema": "^9.0.19",
+		"concurrently": "^8.2.0",
 		"graphql": "^16.6.0",
-		"graphql-yoga": "3.9.1",
-		"next-batch": "^0.0.5"
+		"graphql-yoga": "^4.0.1",
+		"next-batch": "^0.0.5",
+		"pkce-challenge": "^4.0.1"
 	}
 }
