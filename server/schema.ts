@@ -217,6 +217,11 @@ const resolvers = {
   },
   Mutation: {
     async postLink(parent: unknown, args: { description: string; url: string }, context: GraphQLContext) {
+      if (context.userId === null ) {
+        return Promise.reject(
+          new GraphQLError(`User id could not be verified`)
+        ); 
+      }
       const result =  await context.prisma.link.create({
         data: {
           description: args.description,
@@ -277,10 +282,8 @@ const resolvers = {
     },
 
     async poster(parent: Link, args: {}, context: GraphQLContext) {
-      const [key, id] = Object.entries(decodeCursor(parent.id.toString()))[0];
-      //@ts-ignore
-      const result = await context.prisma.user.findUnique({ where: { id } });
-      return result;
+      const result =  await context.prisma.link.findUnique({ where: { id: parent.id }, include: { user: true } });
+      return result.user
     },
   },
   Comment: {
