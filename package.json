@@ -33,6 +33,7 @@
 		"concurrently": "^8.2.0",
 		"graphql": "^16.6.0",
 		"graphql-yoga": "^4.0.1",
+		"jose": "^4.14.4",
 		"next-batch": "^0.0.5",
 		"pkce-challenge": "^4.0.1"
 	}
