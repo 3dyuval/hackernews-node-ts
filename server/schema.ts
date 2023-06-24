@@ -85,7 +85,7 @@ export const typeDefinitions = /* GraphQL */ `
     viewer: Viewer
     node(id: ID!): Node
     info: String!
-    feed(first: Int, after: String, date: String): LinkConnection!
+    feed(first: Int, after: String, date: String, orderBy: String): LinkConnection!
     comment(id: ID!): Comment
     link(id: ID!): Link
     topic(id: String!): Topic
@@ -129,10 +129,19 @@ const resolvers = {
     viewer: async (parent: unknown, args: {}, content: GraphQLContext) => {
       return { name: 'yo', joined: 'yo' };
     },
-    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string }, context: GraphQLContext) => {
+    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string, orderBy?: 'comments' | 'new'}, context: GraphQLContext) => {
       const include = { _count: { select: { linkComment: true } } };
       const where: any = { createdAt: { lte: undefined } };
+      const orderBy: any[] = []
 
+      if (args.orderBy === 'new') {
+        orderBy.push({ createdAt: 'desc' })
+      }
+
+      if (args.orderBy === 'comments') {
+        orderBy.push({linkComment: {_count: 'desc'}})
+      }
+      
       if (typeof args.date === 'string' && args.date.includes('-')) {
         const parts = args.date.split('-');
 
@@ -141,6 +150,9 @@ const resolvers = {
             new GraphQLError(`Date argument '${args.date.slice(0, 10)}' does not match YYYY-MM-DD.'`)
           );
         }
+
+        //TODO https://web.archive.org/web/20201109023658/https://michaelnielsen.org/blog/using-your-laptop-to-compute-pagerank-for-millions-of-webpages/
+
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1; // Months are zero-based in JavaScript (0-11)
         const day = parseInt(parts[2], 10);
@@ -158,7 +170,7 @@ const resolvers = {
             ...query,
             where,
             include,
-            orderBy: [{ createdAt: 'desc' }],
+            orderBy
           }),
         () => context.prisma.link.count(),
         { first: 30, after: args.after },
@@ -170,6 +182,7 @@ const resolvers = {
           }),
         }
       );
+    
     },
     comment: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return await context.prisma.comment.findUnique({
@@ -204,13 +217,14 @@ const resolvers = {
   },
   Mutation: {
     async postLink(parent: unknown, args: { description: string; url: string }, context: GraphQLContext) {
-      return await context.prisma.link.create({
+      const result =  await context.prisma.link.create({
         data: {
           description: args.description,
           url: args.url,
           userId: context.userId
         },
       });
+      return {...result, id: encodeCursor({link: result.id})}
     },
     async postCommentOnLink(parent: unknown, args: { linkId: string; body: string }, context: GraphQLContext) {
       const comment = await context.prisma.comment
