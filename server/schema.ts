@@ -191,8 +191,14 @@ const resolvers = {
     },
   },
   Viewer: {
-    async actor(parent: unknown, args: {}, context: GraphQLContext) {
-      const result = await context.prisma.user.findUnique({ where: { id: 1 } });
+    async actor(parent: unknown, args: { }, context: GraphQLContext) {
+
+      if (context.userId === null ) {
+        return Promise.reject(
+          new GraphQLError(`User id could not be verified`)
+        ); 
+      }
+      const result = await context.prisma.user.findUnique({ where: { id: context.userId } });
       return { ...result, __typename: 'User' };
     },
   },
@@ -202,7 +208,7 @@ const resolvers = {
         data: {
           description: args.description,
           url: args.url,
-          userId: 1, //!TODO get userID
+          userId: context.userId
         },
       });
     },
@@ -217,7 +223,7 @@ const resolvers = {
         .catch((e: Prisma.PrismaClientUnknownRequestError) => {
           if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2003') {
             return Promise.reject(
-              new GraphQLError(`Cannot post comment on non-existing link with id '${args.linkId}'.`)
+              new GraphQLError(`Cannot post comment on non-existing link with id '${args.linkId}'`)
             );
           }
           return Promise.reject(e);
@@ -234,7 +240,7 @@ const resolvers = {
         })
         .catch((e: any) => {
           if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-            return Promise.reject(new GraphQLError(`Cannot create topic with existing topic id '${args.id}'.`));
+            return Promise.reject(new GraphQLError(`Cannot create topic with existing topic id '${args.id}'`));
           }
         });
       return topic;
