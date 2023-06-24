@@ -138,7 +138,7 @@ const resolvers = {
       const where: any = { createdAt: { lte: undefined } };
       const orderBy: any[] = [];
 
-      if (args.orderBy === 'new') {
+      if (args.orderBy === 'new' || !args.orderBy) {
         orderBy.push({ createdAt: 'desc' });
       }
 
