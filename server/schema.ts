@@ -129,19 +129,27 @@ const resolvers = {
     viewer: async (parent: unknown, args: {}, content: GraphQLContext) => {
       return { name: 'yo', joined: 'yo' };
     },
-    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string, orderBy?: 'comments' | 'new'}, context: GraphQLContext) => {
+    feed: async (
+      parent: unknown,
+      args: { first?: string; after?: string; date?: string; orderBy: 'rank' | 'comments' | 'new' },
+      context: GraphQLContext
+    ) => {
       const include = { _count: { select: { linkComment: true } } };
       const where: any = { createdAt: { lte: undefined } };
-      const orderBy: any[] = []
+      const orderBy: any[] = [];
 
       if (args.orderBy === 'new') {
-        orderBy.push({ createdAt: 'desc' })
+        orderBy.push({ createdAt: 'desc' });
       }
 
       if (args.orderBy === 'comments') {
-        orderBy.push({linkComment: {_count: 'desc'}})
+        orderBy.push({ linkComment: { _count: 'desc' } });
       }
-      
+
+      if (args.orderBy === "rank") {
+        orderBy.push({ linkVotes: { _count: 'desc' } });
+      }
+
       if (typeof args.date === 'string' && args.date.includes('-')) {
         const parts = args.date.split('-');
 
@@ -151,7 +159,6 @@ const resolvers = {
           );
         }
 
-        //TODO https://web.archive.org/web/20201109023658/https://michaelnielsen.org/blog/using-your-laptop-to-compute-pagerank-for-millions-of-webpages/
 
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1; // Months are zero-based in JavaScript (0-11)
@@ -170,7 +177,7 @@ const resolvers = {
             ...query,
             where,
             include,
-            orderBy
+            orderBy,
           }),
         () => context.prisma.link.count(),
         { first: 30, after: args.after },
@@ -182,7 +189,6 @@ const resolvers = {
           }),
         }
       );
-    
     },
     comment: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return await context.prisma.comment.findUnique({
@@ -204,12 +210,9 @@ const resolvers = {
     },
   },
   Viewer: {
-    async actor(parent: unknown, args: { }, context: GraphQLContext) {
-
-      if (context.userId === null ) {
-        return Promise.reject(
-          new GraphQLError(`User id could not be verified`)
-        ); 
+    async actor(parent: unknown, args: {}, context: GraphQLContext) {
+      if (context.userId === null) {
+        return Promise.reject(new GraphQLError(`User id could not be verified`));
       }
       const result = await context.prisma.user.findUnique({ where: { id: context.userId } });
       return { ...result, __typename: 'User' };
@@ -217,19 +220,17 @@ const resolvers = {
   },
   Mutation: {
     async postLink(parent: unknown, args: { description: string; url: string }, context: GraphQLContext) {
-      if (context.userId === null ) {
-        return Promise.reject(
-          new GraphQLError(`User id could not be verified`)
-        ); 
+      if (context.userId === null) {
+        return Promise.reject(new GraphQLError(`User id could not be verified`));
       }
-      const result =  await context.prisma.link.create({
+      const result = await context.prisma.link.create({
         data: {
           description: args.description,
           url: args.url,
-          userId: context.userId
+          userId: context.userId,
         },
       });
-      return {...result, id: encodeCursor({link: result.id})}
+      return { ...result, id: encodeCursor({ link: result.id }) };
     },
     async postCommentOnLink(parent: unknown, args: { linkId: string; body: string }, context: GraphQLContext) {
       const comment = await context.prisma.comment
@@ -282,8 +283,8 @@ const resolvers = {
     },
 
     async poster(parent: Link, args: {}, context: GraphQLContext) {
-      const result =  await context.prisma.link.findUnique({ where: { id: parent.id }, include: { user: true } });
-      return result.user
+      const result = await context.prisma.link.findUnique({ where: { id: parent.id }, include: { user: true } });
+      return result.user;
     },
   },
   Comment: {
