@@ -129,13 +129,17 @@ const resolvers = {
     viewer: async (parent: unknown, args: {}, content: GraphQLContext) => {
       return { name: 'yo', joined: 'yo' };
     },
-    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string, orderBy?: 'comments'}, context: GraphQLContext) => {
+    feed: async (parent: unknown, args: { first?: string; after?: string; date?: string, orderBy?: 'comments' | 'new'}, context: GraphQLContext) => {
       const include = { _count: { select: { linkComment: true } } };
       const where: any = { createdAt: { lte: undefined } };
-      const orderBy: any[] = [{ createdAt: 'desc' }]
+      const orderBy: any[] = []
+
+      if (args.orderBy === 'new') {
+        orderBy.push({ createdAt: 'desc' })
+      }
 
       if (args.orderBy === 'comments') {
-        orderBy.unshift({linkComment: {_count: 'desc'}})
+        orderBy.push({linkComment: {_count: 'desc'}})
       }
       
       if (typeof args.date === 'string' && args.date.includes('-')) {
@@ -146,6 +150,8 @@ const resolvers = {
             new GraphQLError(`Date argument '${args.date.slice(0, 10)}' does not match YYYY-MM-DD.'`)
           );
         }
+
+        //TODO https://web.archive.org/web/20201109023658/https://michaelnielsen.org/blog/using-your-laptop-to-compute-pagerank-for-millions-of-webpages/
 
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1; // Months are zero-based in JavaScript (0-11)
@@ -176,6 +182,7 @@ const resolvers = {
           }),
         }
       );
+    
     },
     comment: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return await context.prisma.comment.findUnique({
