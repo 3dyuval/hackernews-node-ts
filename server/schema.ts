@@ -279,7 +279,9 @@ const resolvers = {
         () => context.prisma.comment.count({ where: { linkId: parent.id } }),
         {},
         {
-          encodeCursor,
+          encodeCursor(cursor) {
+            return encodeCursor(({[`comment ${parent.id}`]: cursor}))
+          },
           decodeCursor,
         }
       );
