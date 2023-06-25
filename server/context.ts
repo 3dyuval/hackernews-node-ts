@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client'
-const prisma = new PrismaClient()
 import { authenticateUser, User } from './auth'
+const prisma = new PrismaClient({
+	log: ['query']
+})
 
 export type GraphQLContext = {
 	prisma: PrismaClient

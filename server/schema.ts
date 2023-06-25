@@ -268,18 +268,21 @@ const resolvers = {
   },
   Link: {
     async comments(parent: Link, args: {}, context: GraphQLContext) {
-      const where = { linkId: parent.id };
 
-      const result = await findManyCursorConnection(
-        () => context.prisma.comment.findMany({ where }),
-        () => context.prisma.comment.count({ where }),
+      // https://www.prisma.io/docs/guides/performance-and-optimization/query-optimization-performance#solving-n1-in-graphql-with-findunique-and-prismas-dataloader
+      // using link.findUnique(..).linkComment() 
+      // rather than comment.findMany(...)
+      // creates a batched findMany
+      
+      return findManyCursorConnection(
+        () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
+        () => context.prisma.comment.count({ where: { linkId: parent.id } }),
         {},
         {
           encodeCursor,
           decodeCursor,
         }
       );
-      return result;
     },
 
     async poster(parent: Link, args: {}, context: GraphQLContext) {
