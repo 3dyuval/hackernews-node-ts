@@ -146,7 +146,7 @@ const resolvers = {
         orderBy.push({ linkComment: { _count: 'desc' } });
       }
 
-      if (args.orderBy === "rank") {
+      if (args.orderBy === 'rank') {
         orderBy.push({ linkVotes: { _count: 'desc' } });
       }
 
@@ -158,7 +158,6 @@ const resolvers = {
             new GraphQLError(`Date argument '${args.date.slice(0, 10)}' does not match YYYY-MM-DD.'`)
           );
         }
-
 
         const year = parseInt(parts[0], 10);
         const month = parseInt(parts[1], 10) - 1; // Months are zero-based in JavaScript (0-11)
@@ -233,11 +232,18 @@ const resolvers = {
       return { ...result, id: encodeCursor({ link: result.id }) };
     },
     async postCommentOnLink(parent: unknown, args: { linkId: string; body: string }, context: GraphQLContext) {
+      if (context.userId === null) {
+        return Promise.reject(new GraphQLError(`User id could not be verified`));
+      }
+
+
+      const [key, id] = Object.entries(decodeCursor(args.linkId))[0] as string[]
+
       const comment = await context.prisma.comment
         .create({
           data: {
             body: args.body,
-            linkId: parseInt(args.linkId),
+            linkId: parseInt(id),
           },
         })
         .catch((e: Prisma.PrismaClientUnknownRequestError) => {
@@ -268,19 +274,18 @@ const resolvers = {
   },
   Link: {
     async comments(parent: Link, args: {}, context: GraphQLContext) {
-
       // https://www.prisma.io/docs/guides/performance-and-optimization/query-optimization-performance#solving-n1-in-graphql-with-findunique-and-prismas-dataloader
-      // using link.findUnique(..).linkComment() 
+      // using link.findUnique(..).linkComment()
       // rather than comment.findMany(...)
       // creates a batched findMany
-      
+
       return findManyCursorConnection(
         () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
         () => context.prisma.comment.count({ where: { linkId: parent.id } }),
         {},
         {
           encodeCursor(cursor) {
-            return encodeCursor(({[`comment ${parent.id}`]: cursor}))
+            return encodeCursor({ [`comment ${parent.id}`]: cursor });
           },
           decodeCursor,
         }
