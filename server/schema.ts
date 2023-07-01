@@ -74,6 +74,7 @@ export const typeDefinitions = /* GraphQL */ `
     id: ID!
     body: String!
     link: Link
+    comments: CommentConnection
   }
 
   type Topic {
@@ -98,7 +99,7 @@ export const typeDefinitions = /* GraphQL */ `
 
   type Mutation {
     postLink(url: String!, description: String!): Link!
-    postCommentOnLink(linkId: ID!, body: String!): Comment!
+    postCommentOnLink(linkId: ID!, body: String!, commentId: ): Comment!
     createTopic(id: String!, name: String!): Topic!
   }
 `;
