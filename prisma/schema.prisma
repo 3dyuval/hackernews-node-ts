@@ -8,8 +8,8 @@ generator client {
 }
 
 model Topic {
-  id   String @unique
-  name String
+  id          String @unique
+  name        String
 }
 
 model Link {
@@ -25,10 +25,11 @@ model Link {
 }
 
 model Comment {
-  id     Int    @id @default(autoincrement())
-  body   String
-  link   Link?  @relation(fields: [linkId], references: [id])
-  linkId Int?
+  id        Int    @id @default(autoincrement())
+  body      String
+  link      Link?  @relation(fields: [linkId], references: [id])
+  linkId    Int?
+  commentId Int?
 }
 
 

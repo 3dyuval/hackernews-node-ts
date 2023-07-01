@@ -1,12 +1,10 @@
-import FusionAuthClient, { JWKSResponse } from '@fusionauth/typescript-client';
-import { Plugin, YogaInitialContext } from 'graphql-yoga';
-import { ResolveUserFn } from '@envelop/generic-auth';
+import FusionAuthClient from '@fusionauth/typescript-client';
+import { Plugin } from 'graphql-yoga';
 import * as jose from 'jose';
-import { JWK } from 'node-jose';
 import fs from 'node:fs';
 import path from 'node:path';
 import { PrismaClient } from '@prisma/client';
-import crypto from 'crypto';
+import { logger } from './main';
 
 const clientId = process.env.FUSION_AUTH_CLIENT_ID;
 const clientSecret = process.env.FUSION_AUTH_CLIENT_SECRET;
@@ -34,9 +32,12 @@ export async function authenticateUser(prisma: PrismaClient, request: Request): 
     .importSPKI(spki, 'HS256')
     .then((key) => jose.jwtVerify(cookies['app.at'], key))
     .then((res) => res.payload.sub)
-    .catch(console.error);
+    .catch((res) => {
+      logger.warn(res)
+      return null
+    });
 
-  return sub || null;
+  return sub;
 }
 
 async function getCertificates(): Promise<string> {
