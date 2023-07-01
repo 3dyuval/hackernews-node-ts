@@ -99,7 +99,7 @@ export const typeDefinitions = /* GraphQL */ `
 
   type Mutation {
     postLink(url: String!, description: String!): Link!
-    postCommentOnLink(linkId: ID!, body: String!, commentId: ): Comment!
+    postCommentOnLink(linkId: ID!, body: String! ): Comment!
     createTopic(id: String!, name: String!): Topic!
   }
 `;
@@ -192,7 +192,7 @@ const resolvers = {
     },
     comment: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return await context.prisma.comment.findUnique({
-        where: { id: parseInt(args.id) },
+        where: { id: args.id },
       });
     },
     link: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
@@ -280,16 +280,17 @@ const resolvers = {
       // rather than comment.findMany(...)
       // creates a batched findMany
 
+
+      // Currently, context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment()
+      // resolves all Comments for a given Link,
+      // After getting each comment, we need to build a tree of comments,
+      // From a flat [ { id: 1, parent: null }, { id: 2, parent: 1 }]
+      // into: 
+      // {id: 1, comments: { id: 2 }}
+      
       return findManyCursorConnection(
         () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
         () => context.prisma.comment.count({ where: { linkId: parent.id } }),
-        {},
-        {
-          encodeCursor(cursor) {
-            return encodeCursor({ [`comment ${parent.id}`]: cursor });
-          },
-          decodeCursor,
-        }
       );
     },
 
