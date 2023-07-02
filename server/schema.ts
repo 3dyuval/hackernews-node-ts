@@ -287,11 +287,18 @@ const resolvers = {
       // From a flat [ { id: 1, parent: null }, { id: 2, parent: 1 }]
       // into: 
       // {id: 1, comments: { id: 2 }}
-      
-      return findManyCursorConnection(
+
+      //TODO nextBatch or dataloader pattern
+      // const comments = await context.prisma.comment.findMany({where: { linkId: parent.id}})
+      // if (comments.length) {
+      //   console.log('%cschema.ts line:293 comments', 'color: #007acc;', comments);
+      // }
+      return   findManyCursorConnection(
         () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
         () => context.prisma.comment.count({ where: { linkId: parent.id } }),
       );
+
+
     },
 
     async poster(parent: Link, args: {}, context: GraphQLContext) {

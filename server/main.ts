@@ -2,6 +2,9 @@ import { createYoga } from 'graphql-yoga';
 import { createServer } from 'http';
 import { schema } from './schema';
 import { createContext } from './context';
+import { express as voyagerExpress } from 'graphql-voyager/middleware';
+import express from 'express'
+
 
 import { useAuth } from './auth';
 import winston from 'winston';
@@ -17,6 +20,7 @@ export const logger = winston.createLogger({
 
 
 async function main() {
+
   const yoga = createYoga({
     schema,
     context: createContext,
@@ -37,11 +41,13 @@ async function main() {
     plugins: [useAuth()],
   });
 
-  const server = createServer(yoga);
-  
-  server.listen(4000, () => {
-    console.info(`server is listening on http://localhost:4000/graphql`);
-  });
+  return express()
+  .use(yoga.graphqlEndpoint, yoga)
+  .use('/voyager', voyagerExpress({ endpointUrl: yoga.graphqlEndpoint }))
+  .listen(4000, () => {
+    console.info('Yoga and Voyager server is listening on port 4000')
+  })
+
 }
 
-main();
+main()
