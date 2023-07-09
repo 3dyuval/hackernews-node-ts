@@ -29,8 +29,15 @@ async function main() {
   });
 
   await server.start();
-  app.use('/graphql', cors({ origin: whitelist, credentials: true }), json(),
-   expressMiddleware(server, {context}));
+  app.use('/graphql',
+  cors({ origin: whitelist, credentials: true }),
+  (req, res, next) => {
+    res.set('X-GraphQL-Server', 'Apollo');
+    next()
+  },
+  json(),
+  expressMiddleware(server, {context})
+  );
 
   await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
 
