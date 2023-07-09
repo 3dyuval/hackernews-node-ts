@@ -12,7 +12,7 @@ const fusionAuthURL = process.env.FUSION_AUTH_BASE_URL;
 const client = new FusionAuthClient('noapikeyneeded', fusionAuthURL);
 
 export async function authenticateUser(prisma: PrismaClient, request: Request): Promise<User> {
-  const cookieHeader = request.headers.get('cookie')?.split(';');
+  const cookieHeader = request.headers?.['cookie']?.split(';');
 
   if (!cookieHeader) return null;
 
