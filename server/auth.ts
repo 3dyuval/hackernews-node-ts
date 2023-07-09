@@ -48,20 +48,20 @@ async function getCertificates(): Promise<string> {
 }
 
 export type User = string | null;
+export const whitelist = ['http://localhost:3030'];
 
-export function useAuth(): Plugin {
-  const whitelist = ['http://localhost:3030'];
+// export function cors({ req, res }) {
 
-  return {
-    onResponse({ request, response }) {
-      if (request.method === 'OPTIONS') {
-        if (whitelist.includes(request.headers.get('origin'))) {
-          response.headers.set('Access-Control-Allow-Credentrials', 'true');
-        } else {
-          response.headers.delete('Access-Control-Allow-Credentials');
-        }
-      }
-      response.headers.set('X-GraphQL-Server', 'Yoga');
-    },
-  };
-}
+//   return ({ req, res }) {
+//       if (req.method === 'OPTIONS') {
+//         if (whitelist.includes(req.headers.get['origin'])) {
+//           res.headers.set('Access-Control-Allow-Origin', JSON.stringify(whitelist));
+//           res.headers.set('Access-Control-Allow-Credentrials', 'true');
+//         } else {
+//           res.headers.delete('Access-Control-Allow-Origin');
+//           res.headers.delete('Access-Control-Allow-Credentials');
+//         }
+//       }
+//       res.headers.set('X-GraphQL-Server', 'Apollo');
+//     }
+// }

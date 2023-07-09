@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { authenticateUser, User } from './auth'
+
 const prisma = new PrismaClient({
 	log: ['query']
 })

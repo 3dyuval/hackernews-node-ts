@@ -8,7 +8,7 @@
 		"debug-server": "cross-env NODE_ENV=development ts-node-dev --transpile-only --respawn --inspect=4321 --project server/main.ts",
 		"dev-server": "cross-env NODE_ENV=development ts-node-dev --exit-child --respawn server/main.ts",
 		"fusionauth": "docker-compose up",
-		"dev": "concurrently \"npm run fusionauth\" \"npm run yoga\" ",
+		"dev": "concurrently \"npm run fusionauth\" \"npm run dev-server\" ",
 		"build": "rimraf ./build && tsc",
 		"start": "concurrently \"npm run fusionauth\" \"npm run build && node build/main.js\""
 	},
