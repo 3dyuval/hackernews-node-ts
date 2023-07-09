@@ -293,9 +293,31 @@ const resolvers = {
       // if (comments.length) {
       //   console.log('%cschema.ts line:293 comments', 'color: #007acc;', comments);
       // }
-      return   findManyCursorConnection(
+      // https://xuorig.medium.com/the-graphql-dataloader-pattern-visualized-3064a00f319f
+      // const taskBatch = nextBatch({
+			// 	key: "comments",
+			// 	batchHandler: async (linkIds: { id: number }[]) => {
+			// 		const comments = await context.prisma.comment.findMany({
+			// 			where: {linkId: {in: linkIds.map((key) => key.id)} },
+      //       orderBy: { createdAt: 'desc'  }
+			// 		})
+
+			// 		const result = new Map()
+			// 		linkIds.forEach((key) => {
+			// 			result.set(key, comments.filter((comment) => comment.linkId === key.id))
+			// 		})
+			// 		return result
+			// 	},
+			// })
+
+			// return await taskBatch.add( {id: parent.id} )
+      
+
+
+      return  findManyCursorConnection(
         () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
         () => context.prisma.comment.count({ where: { linkId: parent.id } }),
+        {first: 10}
       );
 
 

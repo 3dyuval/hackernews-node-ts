@@ -25,6 +25,7 @@ model Link {
 }
 
 model Comment {
+  createdAt       DateTime  @default(now())
   id              String    @id @default(uuid())
   body            String
   link            Link?     @relation(fields: [linkId], references: [id])
