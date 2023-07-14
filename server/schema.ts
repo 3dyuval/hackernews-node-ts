@@ -53,7 +53,7 @@ export const typeDefinitions = /* GraphQL */ `
   type Comment implements Node {
     id: ID!
     body: String!
-    parent: String
+    parentId: String
   }
 
   type Topic {
@@ -131,7 +131,7 @@ const resolvers = {
       }
 
       if (args.orderBy === 'rank') {
-        orderBy.push({ linkVotes: { _count: 'desc' } });
+        orderBy.push({ linkComment: { _count: 'desc' } });
       }
 
       if (typeof args.date === 'string' && args.date.includes('-')) {
