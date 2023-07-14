@@ -1,10 +1,10 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.sqlite"
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 
 model Topic {
@@ -18,41 +18,15 @@ model Link {
   createdAt   DateTime    @default(now())
   description String
   url         String
-  linkComment Comment[]
-  linkVotes   LinkVotes[]
-  user        User        @relation(fields: [userId], references: [id])
   userId      String
+  linkComment Comment[]
 }
 
 model Comment {
-  createdAt       DateTime  @default(now())
-  id              String    @id @default(uuid())
+  createdAt       DateTime @default(now())
+  id              String   @id @default(uuid())
   body            String
-  link            Link?     @relation(fields: [linkId], references: [id])
-  linkId          Int?
-  parentCommentId String?   @unique
-  parentComment   Comment?  @relation("CommentHistory", fields: [parentCommentId], references: [id])
-  childComment    Comment[] @relation("CommentHistory")
-}
-
-model User {
-  id             String      @id @unique
-  name           String
-  email          String
-  profilePicture String
-  joined         DateTime    @default(now())
-  postedLinks    Link[]
-  linkVotes      LinkVotes[]
-
-  @@index([id])
-}
-
-model LinkVotes {
-  link      Link     @relation(fields: [linkId], references: [id])
-  linkId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
-  timestamp DateTime @default(now())
-
-  @@id([linkId, userId])
+  Link            Link?     @relation(fields: [linkId], references: [id])
+  linkId          Int  
+  parentId        String?
 }
