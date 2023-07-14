@@ -312,6 +312,7 @@ const resolvers = {
 
 			// return await taskBatch.add( {id: parent.id} )
       
+      const items = await context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment()
 
 
       return  findManyCursorConnection(
