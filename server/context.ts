@@ -14,6 +14,6 @@ export type GraphQLContext = {
 export async function createContext({req, res}): Promise<GraphQLContext> {
 	return {
 		prisma,
-		userId: await authenticateUser(prisma, req)
+		userId: await authenticateUser(req)
 	}
 }

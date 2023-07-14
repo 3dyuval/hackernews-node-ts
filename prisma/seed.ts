@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { Link } from '@prisma/client'
 const prisma = new PrismaClient()
 import type { Root } from './Api'
 
@@ -7,6 +8,7 @@ import type { Root } from './Api'
 const keys = ['created_at', 'title', 'url',]
 
 const add = (query, entry) => prisma.link.create({ data: {
+    userId: '3a6f53ea-61de-4140-9503-b8aa89aa4388',
     createdAt: entry[keys[0]],
     description: entry[keys[1]],
     url: entry[keys[2]],

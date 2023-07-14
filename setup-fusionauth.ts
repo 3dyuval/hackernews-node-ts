@@ -5,7 +5,6 @@ const {FusionAuthClient} = require('@fusionauth/typescript-client');
 let APPLICATION_ID = "cddc93d6-e4b3-4754-8bc5-b85e028fb789";
 let RSA_KEY_ID = "31bceb6d-4cf9-46a6-b371-6b09a757b541"
 
-const name = "Hackernews Clone"
 
 let tenant , user
 

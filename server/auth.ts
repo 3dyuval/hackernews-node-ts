@@ -1,17 +1,9 @@
-import FusionAuthClient from '@fusionauth/typescript-client';
-import { Plugin } from 'graphql-yoga';
 import * as jose from 'jose';
 import fs from 'node:fs';
 import path from 'node:path';
-import { PrismaClient } from '@prisma/client';
-import { logger } from './main';
+import logger  from './logger';
 
-const clientId = process.env.FUSION_AUTH_CLIENT_ID;
-const clientSecret = process.env.FUSION_AUTH_CLIENT_SECRET;
-const fusionAuthURL = process.env.FUSION_AUTH_BASE_URL;
-const client = new FusionAuthClient('noapikeyneeded', fusionAuthURL);
-
-export async function authenticateUser(prisma: PrismaClient, request: Request): Promise<User> {
+export async function authenticateUser(request: Request): Promise<User> {
   const cookieHeader = request.headers?.['cookie']?.split(';');
 
   if (!cookieHeader) return null;
@@ -26,7 +18,10 @@ export async function authenticateUser(prisma: PrismaClient, request: Request): 
     cookies[cookieName] = cookieValue;
   }
 
-  const spki = await getCertificates();
+  const spki = await getCertificates().catch((err) => {
+    logger.error(err)
+    return null
+  })
 
   const sub = await jose
     .importSPKI(spki, 'HS256')
@@ -41,27 +36,16 @@ export async function authenticateUser(prisma: PrismaClient, request: Request): 
 }
 
 async function getCertificates(): Promise<string> {
-  let cert: any = await fs.promises.readFile(path.resolve(process.cwd(), 'cert', 'public-key.pem'), { encoding: 'utf8' });
-  // const jwk: [JWK] = await fetch(new URL(`${fusionAuthURL}/.well-known/jwks.json`)).then((res) => res.json());
-  // let cert = await JWK.asKey(jwk.keys[0]).then((key) => key.toPEM());
-  return cert;
+  return await fs.promises.readFile(path.resolve(
+    process.cwd(), 'cert', 'public-key.pem'),
+  { encoding: 'utf8' })
+  .catch(err => {
+    throw new Error(
+      `Unable to read local file ''public-key.pem.
+      This certificate is required to authenticate user requests.
+    `)
+  })
 }
 
 export type User = string | null;
 export const whitelist = ['http://localhost:3030'];
-
-// export function cors({ req, res }) {
-
-//   return ({ req, res }) {
-//       if (req.method === 'OPTIONS') {
-//         if (whitelist.includes(req.headers.get['origin'])) {
-//           res.headers.set('Access-Control-Allow-Origin', JSON.stringify(whitelist));
-//           res.headers.set('Access-Control-Allow-Credentrials', 'true');
-//         } else {
-//           res.headers.delete('Access-Control-Allow-Origin');
-//           res.headers.delete('Access-Control-Allow-Credentials');
-//         }
-//       }
-//       res.headers.set('X-GraphQL-Server', 'Apollo');
-//     }
-// }
