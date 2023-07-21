@@ -1,9 +1,7 @@
-import { FusionAuthClient } from '@fusionauth/typescript-client';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { Link, Prisma, Comment } from '@prisma/client';
 import { GraphQLError } from 'graphql';
 import type { GraphQLContext } from './context';
-import { nextBatch } from 'next-batch';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 
 export const typeDefinitions = /* GraphQL */ `
@@ -31,11 +29,12 @@ export const typeDefinitions = /* GraphQL */ `
 
   type Link implements Node {
     id: ID!
+    linkId: String!
     topic: String
     description: String!
     url: String!
     comments: CommentConnection
-    createdAt: String!
+    createdAt: Int!
     totalComments: Int!
     userId: String
   }
@@ -51,8 +50,10 @@ export const typeDefinitions = /* GraphQL */ `
   }
 
   type Comment implements Node {
+    link: Link!
     id: ID!
     body: String!
+    createdAt: Int
     parentId: String
   }
 
@@ -67,6 +68,7 @@ export const typeDefinitions = /* GraphQL */ `
     info: String!
     feed(first: Int, after: String, date: String, orderBy: String): LinkConnection!
     comment(id: ID!): Comment
+    newComments: CommentConnection
     link(id: ID!): Link
     topic(id: String!): Topic
   }
@@ -106,7 +108,7 @@ const resolvers = {
 
       return { ...result, id: args.id, __typename: key };
     },
-     viewer: async (parent: unknown, args: {}, context: GraphQLContext) => {
+    viewer: async (parent: unknown, args: {}, context: GraphQLContext) => {
       if (context.userId === null) {
         return Promise.reject(new GraphQLError(`User id could not be verified`));
       }
@@ -165,10 +167,14 @@ const resolvers = {
         () => context.prisma.link.count(),
         { first: 30, after: args.after },
         {
-          encodeCursor,
+          encodeCursor: (cursor) => encodeCursor({ link: cursor }),
           decodeCursor,
           recordToEdge: (record) => ({
-            node: { ...record, totalComments: record._count.linkComment },
+            node: {
+              ...record,
+              totalComments: record._count.linkComment,
+              linkId: encodeCursor({ link: record.id }),
+            },
           }),
         }
       );
@@ -184,12 +190,36 @@ const resolvers = {
       const include = { _count: { select: { linkComment: true } } };
       const result = await context.prisma.link.findUnique({ where, include });
       const { linkComment: totalComments } = result._count;
-      return { ...result, totalComments };
+      return { ...result, totalComments, linkId: encodeCursor({ link: id }) };
     },
     topic: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return context.prisma.topic.findUnique({
         where: { id: args.id },
       });
+    },
+    newComments: async (parent: unknown, args: {}, context: GraphQLContext) => {
+      return findManyCursorConnection(
+        () =>
+          context.prisma.comment.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: { Link: true },
+          }),
+        () => context.prisma.comment.count(),
+        { first: 30 },
+        {
+          recordToEdge: (record) => {
+            return {
+              node: {
+                ...record,
+                link: {
+                  ...record.Link,
+                  linkId: encodeCursor(JSON.stringify({ link: record.Link.id })),
+                },
+              },
+            };
+          },
+        }
+      );
     },
   },
   Mutation: {
@@ -253,13 +283,20 @@ const resolvers = {
   },
   Link: {
     async comments(parent: Link, args: {}, context: GraphQLContext) {
-      return findManyCursorConnection(
+      const r = await findManyCursorConnection(
+        //Querying like this instead of comment.findMany will auto batch all linkComment into one request
         () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
         () => context.prisma.comment.count({ where: { linkId: parent.id } }),
-        { first: 10 }
+        { first: 10 },
+        {
+          recordToEdge: (record) => ({
+            node: { ...record, parentId: record.parentId ? record.parentId : encodeCursor({ link: record.linkId }) },
+          }),
+        }
       );
+      return r;
     },
-  }
+  },
 };
 
 export const schema = makeExecutableSchema({
