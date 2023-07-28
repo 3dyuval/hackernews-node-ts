@@ -3,6 +3,9 @@ import { Link, Prisma, Comment } from '@prisma/client';
 import { GraphQLError } from 'graphql';
 import type { GraphQLContext } from './context';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
+import { link, comment, db } from '../drizzle/schema';
+import { eq } from 'drizzle-orm/expressions';
+import type { Link as LinkDrizzle, Comment as CommentDrizzle } from '../drizzle/schema';
 
 export const typeDefinitions = /* GraphQL */ `
   interface Node {
