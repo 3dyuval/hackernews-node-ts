@@ -34,7 +34,7 @@ export const typeDefinitions = /* GraphQL */ `
     description: String!
     url: String!
     comments: CommentConnection
-    createdAt: Int!
+    createdAt: String!
     totalComments: Int!
     userId: String
   }
@@ -53,7 +53,7 @@ export const typeDefinitions = /* GraphQL */ `
     link: Link!
     id: ID!
     body: String!
-    createdAt: Int
+    createdAt: String
     parentId: String
   }
 
@@ -68,7 +68,7 @@ export const typeDefinitions = /* GraphQL */ `
     info: String!
     feed(first: Int, after: String, date: String, orderBy: String): LinkConnection!
     comment(id: ID!): Comment
-    newComments: CommentConnection
+    newComments(after: String, last: Int, first: Int): CommentConnection
     link(id: ID!): Link
     topic(id: String!): Topic
   }
@@ -197,7 +197,14 @@ const resolvers = {
         where: { id: args.id },
       });
     },
-    newComments: async (parent: unknown, args: {}, context: GraphQLContext) => {
+    newComments: async (
+      parent: unknown,
+      args: {
+        after: string;
+        first: number;
+      },
+      context: GraphQLContext
+    ) => {
       return findManyCursorConnection(
         () =>
           context.prisma.comment.findMany({
@@ -205,7 +212,10 @@ const resolvers = {
             include: { Link: true },
           }),
         () => context.prisma.comment.count(),
-        { first: 30 },
+        {
+          first: args.first,
+          after: args.after,
+        },
         {
           recordToEdge: (record) => {
             return {
