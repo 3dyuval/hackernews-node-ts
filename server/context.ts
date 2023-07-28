@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { authenticateUser, User } from './auth';
-import { db } from '../drizzle/schema';
+import { db } from '../db/drizzle';
 
 const prisma = new PrismaClient();
 

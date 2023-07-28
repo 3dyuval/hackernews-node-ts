@@ -1,0 +1,2 @@
+ALTER TABLE "Link" ADD COLUMN "topic" text;
+ALTER TABLE "Comment" DROP COLUMN IF EXISTS "topic";
