@@ -188,12 +188,14 @@ const resolvers = {
       });
     },
     link: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
-      const [key, id] = Object.entries(decodeCursor(args.id))[0];
-      const where = { id } as { id: number };
-      const include = { _count: { select: { linkComment: true } } };
-      const result = await context.prisma.link.findUnique({ where, include });
-      const { linkComment: totalComments } = result._count;
-      return { ...result, totalComments, linkId: encodeCursor({ link: id }) };
+      const data = await db.select().from(link);
+      return data;
+      // const [key, id] = Object.entries(decodeCursor(args.id))[0];
+      // const where = { id } as { id: number };
+      // const include = { _count: { select: { linkComment: true } } };
+      // const result = await context.prisma.link.findUnique({ where, include });
+      // const { linkComment: totalComments } = result._count;
+      // return { ...result, totalComments, linkId: encodeCursor({ link: id }) };
     },
     topic: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return context.prisma.topic.findUnique({
