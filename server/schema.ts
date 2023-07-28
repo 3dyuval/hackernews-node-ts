@@ -1,11 +1,11 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { Link, Prisma, Comment } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { GraphQLError } from 'graphql';
 import type { GraphQLContext } from './context';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 import { link, comment, db } from '../drizzle/schema';
 import { eq } from 'drizzle-orm/expressions';
-import type { Link as LinkDrizzle, Comment as CommentDrizzle } from '../drizzle/schema';
+import type { Link, Comment } from '../drizzle/schema';
 
 export const typeDefinitions = /* GraphQL */ `
   interface Node {
@@ -37,7 +37,7 @@ export const typeDefinitions = /* GraphQL */ `
     description: String!
     url: String!
     comments: CommentConnection
-    createdAt: Int!
+    createdAt: String!
     totalComments: Int!
     userId: String
   }
@@ -56,7 +56,7 @@ export const typeDefinitions = /* GraphQL */ `
     link: Link!
     id: ID!
     body: String!
-    createdAt: Int
+    createdAt: String
     parentId: String
   }
 
