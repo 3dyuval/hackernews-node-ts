@@ -1,0 +1,18 @@
+_id: env_29ab89fdcc02c35c21fae9a932edaca10e75dd34
+type: Environment
+parentId: wrk_609b25a9276e433d8b3f72eac10789d0
+modified: 1686719720309
+created: 1686395959481
+name: Base Environment
+data:
+  graphql: localhost:4000/graphql
+  date: 2022-12-12
+  invalidDate: 1-2412421441
+dataPropertyOrder:
+  "&":
+    - graphql
+    - date
+    - invalidDate
+color: null
+isPrivate: false
+metaSortKey: 1686395959481

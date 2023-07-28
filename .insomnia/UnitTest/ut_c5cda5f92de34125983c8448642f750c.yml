@@ -1,0 +1,12 @@
+_id: ut_c5cda5f92de34125983c8448642f750c
+type: UnitTest
+parentId: uts_64138bc5bcc847d8a19e0af3170bec45
+modified: 1686397580259
+created: 1686397450820
+requestId: req_74d194a7c6a3412fbbe0adf0b57e49a0
+name: Returns User on Node
+code: |-
+  const response = await insomnia.send();
+  const body = JSON.parse(response.data).data
+  expect(body).to.have.property("node");
+  expect(body.node).to.have.property("id");

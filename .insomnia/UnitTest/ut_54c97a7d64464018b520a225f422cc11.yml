@@ -1,0 +1,12 @@
+_id: ut_54c97a7d64464018b520a225f422cc11
+type: UnitTest
+parentId: uts_64138bc5bcc847d8a19e0af3170bec45
+modified: 1686396619573
+created: 1686396084235
+requestId: req_b796d79dd2114a6a8c41bd718dd137e3
+name: Returns Comment on Node
+code: |-
+  const response = await insomnia.send();
+  const body = JSON.parse(response.data).data
+  expect(body).to.have.property("node");
+  expect(body.node).to.have.property("id");

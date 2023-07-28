@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.sqlite"
+}
+
+model Topic {
+  id   String @unique
+  name String
+}
+
+model Link {
+  id          Int         @id @default(autoincrement())
+  topic       String?
+  createdAt   DateTime    @default(now())
+  description String
+  url         String
+  userId      String
+  linkComment Comment[]
+}
+
+model Comment {
+  createdAt       DateTime @default(now())
+  id              String   @id @default(uuid())
+  body            String
+  Link            Link?     @relation(fields: [linkId], references: [id])
+  linkId          Int  
+  parentId        String?
+}

@@ -1,0 +1,27 @@
+_id: req_381e5012113d4681a42437168094d5db
+type: Request
+parentId: wrk_609b25a9276e433d8b3f72eac10789d0
+modified: 1686396812818
+created: 1686396239231
+url: "{{ _.graphql }}"
+name: node(comment)
+description: ""
+method: POST
+body:
+  mimeType: application/graphql
+  text: '{"query":"query NodeQuery ($id: ID!) {\n\tnode(id: $id)
+    {\n\t\tid\n\t\t... on Comment
+    {\n\t\t\tbody\n\t\t}\n\t}\n}\n","operationName":"NodeQuery","variables":{"id":"eyJDb21tZW50IjoxfQ=="}}'
+parameters: []
+headers:
+  - name: Content-Type
+    value: application/json
+authentication: {}
+metaSortKey: -1686356459722
+isPrivate: false
+settingStoreCookies: true
+settingSendCookies: true
+settingDisableRenderRequestBody: false
+settingEncodeUrl: true
+settingRebuildPath: true
+settingFollowRedirects: global
