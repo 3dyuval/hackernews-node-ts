@@ -27,7 +27,10 @@ export const comment = pgTable('Comment', {
 });
 
 const pool = new Pool({
-  connectionString: process.env['DB_POSTGRES_CONNECTION_STRING'],
+  user: process.env['DB_POSTGRES_USER'],
+  password: process.env['DB_POSTGRES_PASSWORD'],
+  port: parseInt(process.env['DB_POSTGRES_PORT']),
+  host: process.env['DB_POSTGRES_HOST'],
 });
 
 export const db = drizzle(pool);

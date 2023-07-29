@@ -4,7 +4,7 @@ import { GraphQLError } from 'graphql';
 import type { GraphQLContext } from './context';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 import { link, comment, db } from '../db/drizzle';
-import { eq } from 'drizzle-orm/expressions';
+import { eq } from 'drizzle-orm';
 import type { Link, Comment } from '../db/drizzle';
 
 export const typeDefinitions = /* GraphQL */ `
@@ -189,11 +189,11 @@ const resolvers = {
     },
     link: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       const [key, id] = Object.entries(decodeCursor(args.id))[0];
-      const data = await db
+      const [item] = await db
         .select()
         .from(link)
         .where(eq(link.id, id as number));
-      return data.length ? data : null;
+      return item ? { ...item, linkId: encodeCursor({ link: item.id }) } : null;
       // const where = { id } as { id: number };
       // const include = { _count: { select: { linkComment: true } } };
       // const result = await context.prisma.link.findUnique({ where, include });
