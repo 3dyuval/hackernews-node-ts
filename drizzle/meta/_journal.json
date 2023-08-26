@@ -29,6 +29,20 @@
       "when": 1690572783033,
       "tag": "0003_fantastic_aqueduct",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1691222189312,
+      "tag": "0004_pretty_vector",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1691222500893,
+      "tag": "0005_fast_grim_reaper",
+      "breakpoints": true
     }
   ]
 }

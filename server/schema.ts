@@ -4,8 +4,25 @@ import { GraphQLError } from 'graphql';
 import type { GraphQLContext } from './context';
 import { findManyCursorConnection } from '@devoxa/prisma-relay-cursor-connection';
 import { link, comment, db } from '../db/drizzle';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { Link, Comment } from '../db/drizzle';
+
+const atob = (a) => Buffer.from(a, 'base64').toString('binary');
+
+const btoa = (b) => Buffer.from(b).toString('base64');
+
+function decodeId(id: string): number {
+  const parsedObj = JSON.parse(atob(id));
+  const [entity, decodedNumber] = Object.entries(parsedObj).at(0);
+
+  if (typeof decodedNumber === 'string') {
+    const parsedId = Number.parseInt(decodedNumber);
+    if (!isNaN(parsedId)) {
+      return parsedId;
+    }
+  }
+  throw new TypeError('Id must be number');
+}
 
 export const typeDefinitions = /* GraphQL */ `
   interface Node {
@@ -36,7 +53,7 @@ export const typeDefinitions = /* GraphQL */ `
     topic: String
     description: String!
     url: String!
-    comments: CommentConnection
+    comments: [Comment]
     createdAt: String!
     totalComments: Int!
     userId: String
@@ -53,7 +70,7 @@ export const typeDefinitions = /* GraphQL */ `
   }
 
   type Comment implements Node {
-    link: Link!
+    # link: Link!
     id: ID!
     body: String!
     createdAt: String
@@ -188,17 +205,39 @@ const resolvers = {
       });
     },
     link: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
-      const [key, id] = Object.entries(decodeCursor(args.id))[0];
-      const [item] = await db
-        .select()
+      const id = decodeId(args.id);
+
+      const row = await db
+        .select({
+          link,
+          totalComments: sql<number>`count(comments)`,
+        })
         .from(link)
-        .where(eq(link.id, id as number));
-      return item ? { ...item, linkId: encodeCursor({ link: item.id }) } : null;
-      // const where = { id } as { id: number };
-      // const include = { _count: { select: { linkComment: true } } };
-      // const result = await context.prisma.link.findUnique({ where, include });
-      // const { linkComment: totalComments } = result._count;
-      // return { ...result, totalComments, linkId: encodeCursor({ link: id }) };
+        .where(eq(link.id, id))
+        .leftJoin(comment, eq(link.id, comment.parentId))
+        .groupBy(comment.parentId);
+
+      console.log(row);
+      return { ...row, linkId: args.id };
+
+      // const result = rows.reduce<Record<number, Link & { comments: Comment[]; linkId: string; totalComments: number }>>(
+      //   (acc, row) => {
+      //     const link = row.link;
+      //     const comment = row.comment;
+
+      //     acc[link.id] ||= { ...link, linkId: args.id, comments: [], totalComments: 0 };
+
+      //     if (comment) {
+      //       acc[link.id].comments.push(comment);
+      //       acc[link.id].totalComments = acc[link.id].comments.length;
+      //     }
+
+      //     return acc;
+      //   },
+      //   {}
+      // );
+
+      // return result[id];
     },
     topic: async (parent: unknown, args: { id: string }, context: GraphQLContext) => {
       return context.prisma.topic.findUnique({
@@ -291,18 +330,19 @@ const resolvers = {
   },
   Link: {
     async comments(parent: Link, args: {}, context: GraphQLContext) {
-      const r = await findManyCursorConnection(
-        //Querying like this instead of comment.findMany will auto batch all linkComment into one request
-        () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
-        () => context.prisma.comment.count({ where: { linkId: parent.id } }),
-        { first: 10 },
-        {
-          recordToEdge: (record) => ({
-            node: { ...record, parentId: record.parentId ? record.parentId : encodeCursor({ link: record.linkId }) },
-          }),
-        }
-      );
-      return r;
+      // const r = await findManyCursorConnection(
+      //   Querying like this instead of comment.findMany will auto batch all linkComment into one request
+      //   () => context.prisma.link.findUnique({ where: { id: parent.id } }).linkComment(),
+      //   () => context.prisma.comment.count({ where: { linkId: parent.id } }),
+      //   { first: 10 },
+      //   {
+      //     recordToEdge: (record) => ({
+      //       node: { ...record, parentId: record.parentId ? record.parentId : encodeCursor({ link: record.linkId }) },
+      //     }),
+      //   }
+      // );
+      debugger;
+      return;
     },
   },
 };
